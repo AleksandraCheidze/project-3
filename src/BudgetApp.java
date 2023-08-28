@@ -1,6 +1,7 @@
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class BudgetApp {
@@ -8,8 +9,7 @@ public class BudgetApp {
   private final Scanner scanner;
   private FileWriter writer;
   private final ArrayList<Expense> expenses = new ArrayList<>();
-  private final String[] expenseCategories = {"Еда", "Транспорт", "Развлечения", "Прочее"};
-
+  private final List<String> expenseCategories = new ArrayList<>(ExpenseCategories.CATEGORIES);
 
   public BudgetApp() {
     scanner = new Scanner(System.in);
@@ -60,13 +60,13 @@ public class BudgetApp {
 
   private void addExpenses() {
     System.out.println("Выберите категорию расхода:");
-    for (int i = 0; i < expenseCategories.length; i++) {
-      System.out.println((i + 1) + ". " + expenseCategories[i]);
+    for (int i = 0; i < expenseCategories.size(); i++) {
+      System.out.println((i + 1) + ". " + expenseCategories.get(i));
     }
     int categoryChoice = scanner.nextInt();
     scanner.nextLine();
-    if (categoryChoice >= 1 && categoryChoice <= expenseCategories.length) {
-      String category = expenseCategories[categoryChoice - 1];
+    if (categoryChoice >= 1 && categoryChoice <= expenseCategories.size()) {
+      String category = expenseCategories.get(categoryChoice - 1);
 
       System.out.println("Введите сумму расхода:");
       double amount = scanner.nextDouble();
