@@ -32,7 +32,14 @@ public class BudgetApp {
   public void start() {
     while (true) {
       printMenu();
-      int choice = getUserChoice();
+      int choice ;
+      if (scanner.hasNextInt()) {
+        choice = scanner.nextInt();
+      } else {
+        System.err.println("Пожалуйста, введите число.");
+        scanner.next();
+        continue;
+      }
 
       switch (choice) {
         case 1 -> addExpenses();
@@ -47,7 +54,7 @@ public class BudgetApp {
     }
   }
 
-  private int getUserChoice() {
+  static int getUserChoice(Scanner scanner) {
     return scanner.nextInt();
   }
 
@@ -57,7 +64,7 @@ public class BudgetApp {
       System.out.println((i + 1) + ". " + expenseCategories[i]);
     }
     int categoryChoice = scanner.nextInt();
-    scanner.nextLine(); // Считываем символ новой строки после считывания числа
+    scanner.nextLine();
     if (categoryChoice >= 1 && categoryChoice <= expenseCategories.length) {
       String category = expenseCategories[categoryChoice - 1];
 
