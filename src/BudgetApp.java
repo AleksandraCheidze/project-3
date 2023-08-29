@@ -72,19 +72,42 @@ public class BudgetApp {
   }
 
   private void addExpenses() {
-    System.out.println("Выберите категорию расхода:");
-    for (int i = 0; i < expenseCategories.size(); i++) {
-      System.out.println((i + 1) + ". " + expenseCategories.get(i));
+    int categoryChoice;
+    while (true) {
+      System.out.println("Выберите категорию расхода:");
+      for (int i = 0; i < expenseCategories.size(); i++) {
+        System.out.println((i + 1) + ". " + expenseCategories.get(i));
+      }
+
+      if (scanner.hasNextInt()) {
+        categoryChoice = scanner.nextInt();
+        if (categoryChoice >= 1 && categoryChoice <= expenseCategories.size()) {
+          break;  // Верный выбор, выход из цикла
+        } else {
+          System.err.println("Неверный выбор категории.");
+        }
+      } else {
+        System.err.println("Пожалуйста, введите число.");
+        scanner.next(); // Игнорирование неверного ввода
+      }
     }
-    int categoryChoice = scanner.nextInt();
-    scanner.nextLine();
+    scanner.nextLine(); // Игнорирование символа новой строки после nextInt()
 
     if (categoryChoice >= 1 && categoryChoice <= expenseCategories.size()) {
       String category = expenseCategories.get(categoryChoice - 1);
 
       System.out.println("Введите сумму расхода:");
-      double amount = scanner.nextDouble();
-      scanner.nextLine();
+      double amount;
+      while (true) {
+        if (scanner.hasNextDouble()) {
+          amount = scanner.nextDouble();
+          break;
+        } else {
+          System.err.println("Пожалуйста, введите действительное число.");
+          scanner.next(); // Игнорирование неверного ввода
+        }
+      }
+      scanner.nextLine(); // Игнорирование символа новой строки после nextDouble()
 
       System.out.println("Введите дату расхода (в формате dd.MM.yyyy):");
       String dateInput = scanner.nextLine();
@@ -109,7 +132,6 @@ public class BudgetApp {
       System.err.println("Неверный выбор категории.");
     }
   }
-
 
   private void viewConsumption() {
     System.out.println("Отчет о расходах по дням:");
