@@ -15,7 +15,11 @@ public class BudgetApp {
   private final List<String> expenseCategories = new ArrayList<>(ExpenseCategories.CATEGORIES);
   private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
   private final SimpleDateFormat monthYearFormat = new SimpleDateFormat("MM.yyyy");
+  private final ExpenseCategoryManager categoryManager;
   public BudgetApp() {
+
+    categoryManager = new ExpenseCategoryManager();
+
     scanner = new Scanner(System.in);
     try {
       this.writer = new FileWriter(FILE_PATH, true); // Append mode to not overwrite existing data
@@ -29,11 +33,12 @@ public class BudgetApp {
   private void printMenu() {
     System.out.println("1. Добавить расходы");
     System.out.println("2. Посмотреть отчет расходов по дням");
-    System.out.println("3. Посмотреть расходы за период ('С - До')");
-    System.out.println("4. Посмотреть расходы по категориям за месяц");
-    System.out.println("5. Сравнить расходы по месяцам");
+    System.out.println("3. Посмотреть расходы за период по категориям");
+    System.out.println("4. Посмотреть расходы за год");
+    System.out.println("5. Управление категориями");
     System.out.println("6. Выйти");
   }
+
 
   public void start() {
     while (true) {
@@ -51,8 +56,8 @@ public class BudgetApp {
         case 1 -> addExpenses();
         case 2 -> viewConsumption();
         case 3 -> expenditureCategories();
-        case 4 -> categoryPerMonth();
-        case 5 -> compareExpensesByMonth();
+        case 4 -> categoryPerYear();
+        case 5 -> manageCategories();
         case 6 -> {
           exit();
           return;
@@ -74,69 +79,61 @@ public class BudgetApp {
   }
 
   private void addExpenses() {
-    while (true) {
-      System.out.println("Выберите категорию расхода:");
-      for (int i = 0; i < expenseCategories.size(); i++) {
-        System.out.println((i + 1) + ". " + expenseCategories.get(i));
-      }
+    System.out.println("Выберите категорию расхода:");
+    List<String> categories = categoryManager.getCategories();
+    for (int i = 0; i < categories.size(); i++) {
+      System.out.println((i + 1) + ". " + categories.get(i));
+    }
 
-      int categoryChoice;
+    int categoryChoice;
+    while (true) {
       if (scanner.hasNextInt()) {
         categoryChoice = scanner.nextInt();
-        if (categoryChoice >= 1 && categoryChoice <= expenseCategories.size()) {
-          scanner.nextLine(); // Считываем символ новой строки после nextInt()
-
-          String category = expenseCategories.get(categoryChoice - 1);
-
-          System.out.println("Введите сумму расхода:");
-          double amount;
-          while (true) {
-            if (scanner.hasNextDouble()) {
-              amount = scanner.nextDouble();
-              break;
-            } else {
-              System.err.println("Пожалуйста, введите действительное число.");
-              scanner.next(); // Игнорируем неверный ввод
-            }
-          }
-          scanner.nextLine(); // Считываем символ новой строки после nextDouble()
-
-          System.out.println("Введите дату расхода (в формате dd.MM.yyyy):");
-          String dateInput = scanner.nextLine();
-
-          Date date = parseDate(dateInput);
-          if (date != null) {
-            String formattedDate = dateFormat.format(date);
-
-            Expense newExpense = new Expense(category, amount, formattedDate);
-            expenses.add(newExpense);
-
-            try (FileWriter writer = new FileWriter(FILE_PATH, true)) {
-              writer.write(category + " " + amount + " " + formattedDate + "\n");
-              System.out.println("Расход добавлен успешно!");
-
-              System.out.println("1. Вернуться в главное меню");
-              System.out.println("2. Добавить ещё расход");
-              int choice = getUserChoice(scanner);
-              if (choice == 1) {
-                return; // Возвращаемся в главное меню
-              } else if (choice == 2) {
-                System.err.println("Неверный выбор.");
-                return; // Возвращаемся в главное меню
-              }
-            } catch (IOException e) {
-              System.err.println("Ошибка при записи в файл: " + e.getMessage());
-            }
-          } else {
-            System.err.println("Неверный формат даты.");
-          }
+        if (categoryChoice >= 1 && categoryChoice <= categories.size()) {
+          break;  // Верный выбор, выход из цикла
         } else {
           System.err.println("Неверный выбор категории.");
         }
       } else {
         System.err.println("Пожалуйста, введите число.");
-        scanner.next(); // Игнорируем неверный ввод
+        scanner.next(); // Игнорирование неверного ввода
       }
+    }
+    scanner.nextLine(); // Игнорирование символа новой строки после nextInt()
+
+    String category = categories.get(categoryChoice - 1);
+
+    System.out.println("Введите сумму расхода:");
+    double amount;
+    while (true) {
+      if (scanner.hasNextDouble()) {
+        amount = scanner.nextDouble();
+        break;
+      } else {
+        System.err.println("Пожалуйста, введите действительное число.");
+        scanner.next(); // Игнорирование неверного ввода
+      }
+    }
+    scanner.nextLine(); // Игнорирование символа новой строки после nextDouble()
+
+    System.out.println("Введите дату расхода (в формате dd.MM.yyyy):");
+    String dateInput = scanner.nextLine();
+
+    Date date = parseDate(dateInput);
+    if (date != null) {
+      String formattedDate = dateFormat.format(date);
+
+      Expense newExpense = new Expense(category, amount, formattedDate);
+      expenses.add(newExpense);
+
+      try (FileWriter writer = new FileWriter(FILE_PATH, true)) {
+        writer.write(category + " " + amount + " " + formattedDate + "\n");
+        System.out.println("Расход добавлен успешно!");
+      } catch (IOException e) {
+        System.err.println("Ошибка при записи в файл: " + e.getMessage());
+      }
+    } else {
+      System.err.println("Неверный формат даты.");
     }
   }
 
@@ -216,39 +213,46 @@ public class BudgetApp {
     }
   }
 
-  private void categoryPerMonth() {  // Метод для просмотра расходов по категориям за определенный месяц
-    System.out.println("Посмотреть расходы по категориям за месяц:");
+  private void categoryPerYear() {
+    System.out.println("Посмотреть расходы по категориям за год:");
 
-    System.out.println("Введите месяц и год (в формате MM.yyyy):");
-    String monthYearInput = scanner.next(); // Используем next() для считывания одного слова
+    System.out.println("Введите год (в формате yyyy):");
+    String yearInput = scanner.next();
 
-    Date monthYear = parseMonthYear(monthYearInput);
+    int year;
+    try {
+      year = Integer.parseInt(yearInput);
+    } catch (NumberFormatException e) {
+      System.err.println("Неверный формат года.");
+      return;
+    }
 
-    if (monthYear != null) {
-      System.out.println("Расходы по категориям за " + monthYearFormat.format(monthYear) + ":");
+    System.out.println("Расходы по категориям за " + year + " год:");
 
-      Map<String, Double> categoryExpenses = new HashMap<>();
-
+    Map<Month, Double> categoryExpensesPerMonth = new HashMap<>();
+    for (Month month : Month.values()) {
+      double totalExpenseForMonth = 0.0;
       for (Expense expense : expenses) {
         Date expenseDate = parseDate(expense.getDate());
-        if (expenseDate != null && isSameMonthYear(expenseDate, monthYear)) {
-          String category = expense.getCategory();
-          double amount = expense.getAmount();
-          categoryExpenses.put(category, categoryExpenses.getOrDefault(category, 0.0) + amount);
+        if (expenseDate != null) {
+          Calendar cal = Calendar.getInstance();
+          cal.setTime(expenseDate);
+          if (cal.get(Calendar.YEAR) == year && cal.get(Calendar.MONTH) == month.ordinal()) {
+            totalExpenseForMonth += expense.getAmount();
+          }
         }
       }
+      categoryExpensesPerMonth.put(month, totalExpenseForMonth);
+    }
 
-      for (Map.Entry<String, Double> entry : categoryExpenses.entrySet()) {
-        String category = entry.getKey();
-        double amount = entry.getValue();
-        System.out.println("Категория: " + category);
-        System.out.println("Сумма: " + amount);
-        System.out.println();
-      }
-    } else {
-      System.err.println("Неверный формат месяца и года.");
+    for (Month month : Month.values()) {
+      double amount = categoryExpensesPerMonth.getOrDefault(month, 0.0);
+      System.out.println("Месяц: " + month.getName());
+      System.out.println("Сумма затрат: " + amount);
+      System.out.println();
     }
   }
+
 
 
   private Date parseMonthYear(String dateString) {
@@ -296,6 +300,67 @@ public class BudgetApp {
       System.out.println();
     }
   }
+
+  private void manageCategories() {
+    while (true) {
+      System.out.println("Управление категориями:");
+      System.out.println("1. Добавить категорию");
+      System.out.println("2. Удалить категорию");
+      System.out.println("3. Вернуться в главное меню");
+
+      int choice;
+      if (scanner.hasNextInt()) {
+        choice = scanner.nextInt();
+      } else {
+        System.err.println("Пожалуйста, введите число.");
+        scanner.next();
+        continue;
+      }
+
+      switch (choice) {
+        case 1 -> addCategory();
+        case 2 -> removeCategory();
+        case 3 -> {
+          return;
+        }
+        default -> System.err.println("Неверный выбор");
+      }
+    }
+  }
+
+  private void addCategory() {
+    System.out.println("Введите название новой категории:");
+    scanner.nextLine(); // Очистка буфера
+    String newCategory = scanner.nextLine().trim();
+    if (!newCategory.isEmpty()) {
+      boolean added = categoryManager.addCategory(newCategory);
+      if (added) {
+        updateCategoryList();
+      }
+    } else {
+      System.err.println("Название категории не может быть пустым.");
+    }
+  }
+
+  private void removeCategory() {
+    System.out.println("Введите название категории для удаления:");
+    scanner.nextLine(); // Очистка буфера
+    String categoryToRemove = scanner.nextLine().trim();
+    if (!categoryToRemove.isEmpty()) {
+      boolean removed = categoryManager.removeCategory(categoryToRemove);
+      if (removed) {
+        updateCategoryList();
+      }
+    } else {
+      System.err.println("Название категории не может быть пустым.");
+    }
+  }
+
+  private void updateCategoryList() {
+    expenseCategories.clear();
+    expenseCategories.addAll(categoryManager.getCategories());
+  }
+
 
 
   private void exit() {
