@@ -31,7 +31,8 @@ public class BudgetApp {
     System.out.println("2. Посмотреть отчет расходов по дням");
     System.out.println("3. Посмотреть расходы за период ('С - До')");
     System.out.println("4. Посмотреть расходы по категориям за месяц");
-    System.out.println("5. Выйти");
+    System.out.println("5. Сравнить расходы по месяцам");
+    System.out.println("6. Выйти");
   }
 
   public void start() {
@@ -51,7 +52,8 @@ public class BudgetApp {
         case 2 -> viewConsumption();
         case 3 -> expenditureCategories();
         case 4 -> categoryPerMonth();
-        case 5 -> {
+        case 5 -> compareExpensesByMonth();
+        case 6 -> {
           exit();
           return;
         }
@@ -119,8 +121,6 @@ public class BudgetApp {
               if (choice == 1) {
                 return; // Возвращаемся в главное меню
               } else if (choice == 2) {
-                continue; // Добавляем ещё расход
-              } else {
                 System.err.println("Неверный выбор.");
                 return; // Возвращаемся в главное меню
               }
@@ -170,8 +170,6 @@ public class BudgetApp {
 
       dailyExpenses.put(date, dailyExpenses.getOrDefault(date, 0.0) + amount);
     }
-
-    SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
 
     for (Map.Entry<String, Double> entry : dailyExpenses.entrySet()) {
       String date = entry.getKey();
@@ -274,6 +272,30 @@ public class BudgetApp {
         cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR);
   }
 
+  private void compareExpensesByMonth() {
+    System.out.println("Сравнение затрат по месяцам:");
+
+    Map<Month, Double> monthlyExpenses = new HashMap<>();
+
+    for (Expense expense : expenses) {
+      Date expenseDate = parseDate(expense.getDate());
+      if (expenseDate != null) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(expenseDate);
+        Month month = Month.values()[cal.get(Calendar.MONTH)];
+        double amount = expense.getAmount();
+        monthlyExpenses.put(month, monthlyExpenses.getOrDefault(month, 0.0) + amount);
+      }
+    }
+
+    for (Map.Entry<Month, Double> entry : monthlyExpenses.entrySet()) {
+      Month month = entry.getKey();
+      double amount = entry.getValue();
+      System.out.println("Месяц: " + month.getName());
+      System.out.println("Сумма затрат: " + amount);
+      System.out.println();
+    }
+  }
 
 
   private void exit() {
