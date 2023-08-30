@@ -26,8 +26,9 @@ public class BudgetApp {
     System.out.println("2. Посмотреть отчет расходов по дням");
     System.out.println("3. Посмотреть расходы за период по категориям");
     System.out.println("4. Посмотреть расходы за год по месяцам ");
-    System.out.println("5. Управление категориями");
-    System.out.println("6. Выйти");
+    System.out.println("5. Сравнить расходы с предыдущим месяцем");
+    System.out.println("6. Управление категориями");
+    System.out.println("7. Выйти");
   }
 
   public void start() {
@@ -56,9 +57,12 @@ public class BudgetApp {
           categoryPerYear();
           break;
         case 5:
-          categoryManager.manageCategories(scanner);
+          compareExpensesWithPreviousMonth();
           break;
         case 6:
+          categoryManager.manageCategories(scanner);
+          break;
+        case 7:
           exit();
           return;
         default:
@@ -249,7 +253,46 @@ public class BudgetApp {
       System.out.println();
     }
   }
+  private void compareExpensesWithPreviousMonth() {
+    System.out.println("Сравнение расходов с предыдущим месяцем:");
 
+    Calendar currentMonthStart = Calendar.getInstance();
+    currentMonthStart.set(Calendar.DAY_OF_MONTH, 1); // Первый день текущего месяца
+
+    Calendar previousMonthStart = Calendar.getInstance();
+    previousMonthStart.add(Calendar.MONTH, -1);
+    previousMonthStart.set(Calendar.DAY_OF_MONTH, 1); // Первый день предыдущего месяца
+
+    double totalExpensesCurrent = getTotalExpensesInMonth(currentMonthStart);
+    double totalExpensesPrevious = getTotalExpensesInMonth(previousMonthStart);
+
+    System.out.println("Расходы в текущем месяце: " + totalExpensesCurrent);
+    System.out.println("Расходы в предыдущем месяце: " + totalExpensesPrevious);
+
+    if (totalExpensesCurrent > totalExpensesPrevious) {
+      System.out.println("Вы потратили больше в текущем месяце.");
+    } else if (totalExpensesCurrent < totalExpensesPrevious) {
+      System.out.println("Вы потратили меньше в текущем месяце.");
+    } else {
+      System.out.println("Ваши расходы остались примерно на том же уровне.");
+    }
+  }
+
+  private double getTotalExpensesInMonth(Calendar startDate) {
+    Calendar endDate = (Calendar) startDate.clone();
+    endDate.add(Calendar.MONTH, 1); // Прибавляем месяц для определения конца месяца
+
+    double totalExpenses = 0.0;
+
+    for (Expense expense : expenses) {
+      Date expenseDate = parseDate(expense.getDate());
+      if (expenseDate != null && expenseDate.after(startDate.getTime()) && expenseDate.before(endDate.getTime())) {
+        totalExpenses += expense.getAmount();
+      }
+    }
+
+    return totalExpenses;
+  }
   private void exit() {
     System.out.println("Выход");
     scanner.close();
