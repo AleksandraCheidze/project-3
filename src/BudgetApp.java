@@ -1,13 +1,10 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class BudgetApp {
 
@@ -17,11 +14,12 @@ public class BudgetApp {
   private final ArrayList<Expense> expenses = new ArrayList<>();
   private final List<String> expenseCategories = new ArrayList<>(ExpenseCategories.CATEGORIES);
   private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
-
+  private final SimpleDateFormat monthYearFormat = new SimpleDateFormat("MM.yyyy");
   public BudgetApp() {
     scanner = new Scanner(System.in);
     try {
-      this.writer = new FileWriter(FILE_PATH);
+      this.writer = new FileWriter(FILE_PATH, true); // Append mode to not overwrite existing data
+      loadExpensesFromFile(); // Load expenses from file if available
     } catch (Exception e) {
       System.out.println(e.getMessage());
     }
@@ -31,8 +29,9 @@ public class BudgetApp {
   private void printMenu() {
     System.out.println("1. Добавить расходы");
     System.out.println("2. Посмотреть отчет расходов по дням");
-    System.out.println("3. Посмотреть расходы по категориям");
-    System.out.println("4. Выйти");
+    System.out.println("3. Посмотреть расходы за период ('С - До')");
+    System.out.println("4. Посмотреть расходы по категориям за месяц");
+    System.out.println("5. Выйти");
   }
 
   public void start() {
@@ -51,7 +50,8 @@ public class BudgetApp {
         case 1 -> addExpenses();
         case 2 -> viewConsumption();
         case 3 -> expenditureCategories();
-        case 4 -> {
+        case 4 -> categoryPerMonth();
+        case 5 -> {
           exit();
           return;
         }
@@ -72,68 +72,94 @@ public class BudgetApp {
   }
 
   private void addExpenses() {
-    int categoryChoice;
     while (true) {
       System.out.println("Выберите категорию расхода:");
       for (int i = 0; i < expenseCategories.size(); i++) {
         System.out.println((i + 1) + ". " + expenseCategories.get(i));
       }
 
+      int categoryChoice;
       if (scanner.hasNextInt()) {
         categoryChoice = scanner.nextInt();
         if (categoryChoice >= 1 && categoryChoice <= expenseCategories.size()) {
-          break;  // Верный выбор, выход из цикла
+          scanner.nextLine(); // Считываем символ новой строки после nextInt()
+
+          String category = expenseCategories.get(categoryChoice - 1);
+
+          System.out.println("Введите сумму расхода:");
+          double amount;
+          while (true) {
+            if (scanner.hasNextDouble()) {
+              amount = scanner.nextDouble();
+              break;
+            } else {
+              System.err.println("Пожалуйста, введите действительное число.");
+              scanner.next(); // Игнорируем неверный ввод
+            }
+          }
+          scanner.nextLine(); // Считываем символ новой строки после nextDouble()
+
+          System.out.println("Введите дату расхода (в формате dd.MM.yyyy):");
+          String dateInput = scanner.nextLine();
+
+          Date date = parseDate(dateInput);
+          if (date != null) {
+            String formattedDate = dateFormat.format(date);
+
+            Expense newExpense = new Expense(category, amount, formattedDate);
+            expenses.add(newExpense);
+
+            try (FileWriter writer = new FileWriter(FILE_PATH, true)) {
+              writer.write(category + " " + amount + " " + formattedDate + "\n");
+              System.out.println("Расход добавлен успешно!");
+
+              System.out.println("1. Вернуться в главное меню");
+              System.out.println("2. Добавить ещё расход");
+              int choice = getUserChoice(scanner);
+              if (choice == 1) {
+                return; // Возвращаемся в главное меню
+              } else if (choice == 2) {
+                continue; // Добавляем ещё расход
+              } else {
+                System.err.println("Неверный выбор.");
+                return; // Возвращаемся в главное меню
+              }
+            } catch (IOException e) {
+              System.err.println("Ошибка при записи в файл: " + e.getMessage());
+            }
+          } else {
+            System.err.println("Неверный формат даты.");
+          }
         } else {
           System.err.println("Неверный выбор категории.");
         }
       } else {
         System.err.println("Пожалуйста, введите число.");
-        scanner.next(); // Игнорирование неверного ввода
+        scanner.next(); // Игнорируем неверный ввод
       }
-    }
-    scanner.nextLine(); // Игнорирование символа новой строки после nextInt()
-
-    if (categoryChoice >= 1 && categoryChoice <= expenseCategories.size()) {
-      String category = expenseCategories.get(categoryChoice - 1);
-
-      System.out.println("Введите сумму расхода:");
-      double amount;
-      while (true) {
-        if (scanner.hasNextDouble()) {
-          amount = scanner.nextDouble();
-          break;
-        } else {
-          System.err.println("Пожалуйста, введите действительное число.");
-          scanner.next(); // Игнорирование неверного ввода
-        }
-      }
-      scanner.nextLine(); // Игнорирование символа новой строки после nextDouble()
-
-      System.out.println("Введите дату расхода (в формате dd.MM.yyyy):");
-      String dateInput = scanner.nextLine();
-
-      Date date = parseDate(dateInput);
-      if (date != null) {
-        String formattedDate = dateFormat.format(date);
-
-        Expense newExpense = new Expense(category, amount, formattedDate);
-        expenses.add(newExpense);
-
-        try (FileWriter writer = new FileWriter(FILE_PATH, true)) {
-          writer.write(category + " " + amount + " " + formattedDate + "\n");
-          System.out.println("Расход добавлен успешно!");
-        } catch (IOException e) {
-          System.err.println("Ошибка при записи в файл: " + e.getMessage());
-        }
-      } else {
-        System.err.println("Неверный формат даты.");
-      }
-    } else {
-      System.err.println("Неверный выбор категории.");
     }
   }
 
-  private void viewConsumption() {
+  private void loadExpensesFromFile() { //Метод для загрузки расходов из файла, если доступно
+    try (Scanner fileScanner = new Scanner(new File(FILE_PATH))) {
+      while (fileScanner.hasNextLine()) {
+        String line = fileScanner.nextLine();
+        String[] parts = line.split(" ");
+        if (parts.length >= 3) {
+          String category = parts[0];
+          double amount = Double.parseDouble(parts[1]);
+          String date = parts[2];
+          expenses.add(new Expense(category, amount, date));
+        }
+      }
+    } catch (FileNotFoundException e) {
+      // File not found, it's okay, there might not be any existing data
+    } catch (Exception e) {
+      System.err.println("Ошибка при чтении из файла: " + e.getMessage());
+    }
+  }
+
+  private void viewConsumption() {  // Метод для просмотра отчета о расходах по дням
     System.out.println("Отчет о расходах по дням:");
 
     Map<String, Double> dailyExpenses = new HashMap<>();
@@ -157,7 +183,7 @@ public class BudgetApp {
     }
   }
 
-  private void expenditureCategories() {
+  private void expenditureCategories() { // Метод для просмотра расходов за выбранный период по категориям
     System.out.println("Введите начальную дату (в формате dd.MM.yyyy):");
     scanner.nextLine(); // Добавьте эту строку для очистки буфера
     String startDateInput = scanner.nextLine();
@@ -192,16 +218,71 @@ public class BudgetApp {
     }
   }
 
+  private void categoryPerMonth() {  // Метод для просмотра расходов по категориям за определенный месяц
+    System.out.println("Посмотреть расходы по категориям за месяц:");
 
-  private void exit () {
-      try {
-        writer.close();
-      } catch (Exception e) {
-        System.out.println(e.getMessage());
+    System.out.println("Введите месяц и год (в формате MM.yyyy):");
+    String monthYearInput = scanner.next(); // Используем next() для считывания одного слова
+
+    Date monthYear = parseMonthYear(monthYearInput);
+
+    if (monthYear != null) {
+      System.out.println("Расходы по категориям за " + monthYearFormat.format(monthYear) + ":");
+
+      Map<String, Double> categoryExpenses = new HashMap<>();
+
+      for (Expense expense : expenses) {
+        Date expenseDate = parseDate(expense.getDate());
+        if (expenseDate != null && isSameMonthYear(expenseDate, monthYear)) {
+          String category = expense.getCategory();
+          double amount = expense.getAmount();
+          categoryExpenses.put(category, categoryExpenses.getOrDefault(category, 0.0) + amount);
+        }
       }
-      System.out.println("Выход");
-      scanner.close();
+
+      for (Map.Entry<String, Double> entry : categoryExpenses.entrySet()) {
+        String category = entry.getKey();
+        double amount = entry.getValue();
+        System.out.println("Категория: " + category);
+        System.out.println("Сумма: " + amount);
+        System.out.println();
+      }
+    } else {
+      System.err.println("Неверный формат месяца и года.");
     }
   }
 
 
+  private Date parseMonthYear(String dateString) {
+    //для преобразования введенной пользователем строки в дату.
+    try {
+      return monthYearFormat.parse(dateString);
+    } catch (ParseException e) {
+      return null;
+    }
+  }
+
+  private boolean isSameMonthYear(Date date1, Date date2) {
+    // метод для проверки, являются ли две даты одним и тем же месяцем и годом.
+    Calendar cal1 = Calendar.getInstance();
+    cal1.setTime(date1);
+
+    Calendar cal2 = Calendar.getInstance();
+    cal2.setTime(date2);
+
+    return cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
+        cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR);
+  }
+
+
+
+  private void exit() {
+    try {
+      writer.close();
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+    }
+    System.out.println("Выход");
+    scanner.close();
+  }
+}

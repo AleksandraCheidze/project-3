@@ -1,7 +1,7 @@
-public class Expense {
-  private String category;
-  private double amount;
-  private String date;
+class Expense {
+  private final String category;
+  private final double amount;
+  private final String date;
 
   public Expense(String category, double amount, String date) {
     this.category = category;
@@ -21,3 +21,4 @@ public class Expense {
     return date;
   }
 }
+
