@@ -58,30 +58,22 @@ public class BudgetApp {
     ExpenseReportGenerator reportGenerator = new ExpenseReportGenerator(expenses);
     while (isSubMenuRunning) {
       System.out.println("Меню отчетов:");
-      System.out.println("1. Посмотреть отчет расходов по дням");
-      System.out.println("2. Посмотреть расходы за период по категориям");
-      System.out.println("3. Посмотреть расходы за год по месяцам");
-      System.out.println("4. Сравнить расходы по месяцам");
-      System.out.println("5. Сравнить расходы по годам");
-      System.out.println("6. Назад в главное меню");
+      System.out.println("1. Таблица расходов по месяцам и категориям");
+      System.out.println("2. Сравнить расходы текущего месяца с прошлым");
+      System.out.println("3. Сравнить расходы текущего года с прошлым");
+      System.out.println("4. Назад в главное меню");
       int reportChoice = getUserChoice(scanner);
       switch (reportChoice) {
         case 1:
-          reportGenerator.viewExpensesByDay();
-          break;
-        case 2:
           reportGenerator.viewExpensesByCategoryAndPeriod();
           break;
-        case 3:
-          reportGenerator.viewExpensesByMonthOfYear();
-          break;
-        case 4:
+        case 2:
           reportGenerator.compareExpensesWithPreviousMonth();
           break;
-        case 5:
+        case 3:
           reportGenerator.compareExpensesByYear();
           break;
-        case 6:
+        case 4:
           isSubMenuRunning = false;
           break;
         default:
@@ -133,7 +125,7 @@ public class BudgetApp {
   }
 
   private double getDoubleInput() {
-    double amount = 0.0;
+    double amount;
     while (true) {
       try {
         amount = Double.parseDouble(scanner.nextLine());
@@ -172,7 +164,7 @@ public class BudgetApp {
       }
     } catch (FileNotFoundException e) {
     } catch (Exception e) {
-      System.err.println("Ошибка при чтении из файла: " + e.getMessage());
+      System.err.println("Невозможно считать расходы: " + e.getMessage());
     }
   }
 
@@ -182,9 +174,9 @@ public class BudgetApp {
         writer.write(
             expense.getCategory() + " " + expense.getAmount() + " " + expense.getDate() + "\n");
       }
-      System.out.println("Расходы сохранены в файл.");
+      System.out.println("Расходы сохранены.");
     } catch (IOException e) {
-      System.err.println("Ошибка при записи в файл: " + e.getMessage());
+      System.err.println("Ошибка при сохранении расходов: " + e.getMessage());
     }
   }
 
