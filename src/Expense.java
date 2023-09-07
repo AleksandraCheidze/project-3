@@ -1,4 +1,4 @@
-class Expense {
+public class Expense {
   private final String category;
   private final double amount;
   private final String date;
@@ -21,4 +21,3 @@ class Expense {
     return date;
   }
 }
-
