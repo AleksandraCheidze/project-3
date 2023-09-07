@@ -15,12 +15,12 @@ public class ExpenseReportGenerator {
 
   public void viewExpensesByCategoryAndPeriod() {
     System.out.println("Отчет о расходах по категориям и периоду:");
-    System.out.println("Выберите категорию:");
+    System.out.println("Выберите категорию или введите 0 для выбора всех категорий:");
     List<String> categories = getDistinctCategories();
     for (int i = 0; i < categories.size(); i++) {
       System.out.println((i + 1) + ". " + categories.get(i));
     }
-    int categoryChoice = getUserChoice(scanner, 1, categories.size());
+    int categoryChoice = getUserChoice(scanner, 0, categories.size() - 1); // Allow 0 for all categories
 
     System.out.println("Введите начальную дату (в формате dd.MM.yyyy):");
     String startDateInput = scanner.next();
@@ -31,130 +31,167 @@ public class ExpenseReportGenerator {
     Date endDate = parseDate(endDateInput);
 
     if (startDate != null && endDate != null) {
-      String selectedCategory = categories.get(categoryChoice - 1);
+      String selectedCategory = categoryChoice == 0 ? "Все категории" : categories.get(categoryChoice - 1);
       double totalExpenses = 0.0;
+      Map<String, Double> categoryExpensesMap = new HashMap<>();
+
+      System.out.println("======================================");
+      System.out.println("Категория: " + selectedCategory);
+      System.out.println("Период: с " + startDateInput + " по " + endDateInput);
 
       for (Expense expense : expenses) {
         Date expenseDate = parseDate(expense.getDate());
-        if (expenseDate != null && expense.getCategory().equals(selectedCategory)
+        String expenseCategory = expense.getCategory();
+        if (expenseDate != null && (selectedCategory.equals("Все категории") || expenseCategory.equals(selectedCategory))
             && expenseDate.compareTo(startDate) >= 0 && expenseDate.compareTo(endDate) <= 0) {
           totalExpenses += expense.getAmount();
+
+          categoryExpensesMap.put(expenseCategory, categoryExpensesMap.getOrDefault(expenseCategory, 0.0) + expense.getAmount());
         }
       }
 
-      System.out.println("Расходы по категории '" + selectedCategory + "' за период с " + startDateInput + " по " + endDateInput + ": " + totalExpenses);
-    } else {
-      System.err.println("Неверный формат даты.");
-    }
-  }
+      System.out.println("Итоговые расходы: " + totalExpenses);
 
-  public void viewExpensesByDay() {
-    System.out.println("Отчет о расходах по дням:");
-    System.out.println("Введите дату (в формате dd.MM.yyyy):");
-    String dateInput = scanner.next();
-    Date selectedDate = parseDate(dateInput);
+      String maxCategory = "";
+      double maxCategoryExpenses = 0.0;
 
-    if (selectedDate != null) {
-      double totalExpenses = 0.0;
-
-      for (Expense expense : expenses) {
-        Date expenseDate = parseDate(expense.getDate());
-        if (expenseDate != null && expenseDate.equals(selectedDate)) {
-          totalExpenses += expense.getAmount();
+      for (Map.Entry<String, Double> entry : categoryExpensesMap.entrySet()) {
+        String category = entry.getKey();
+        double categoryExpenses = entry.getValue();
+        if (categoryExpenses > maxCategoryExpenses) {
+          maxCategoryExpenses = categoryExpenses;
+          maxCategory = category;
         }
       }
 
-      System.out.println("Расходы за " + dateInput + ": " + totalExpenses);
-    } else {
-      System.err.println("Неверный формат даты.");
-    }
-  }
+      if (selectedCategory.equals("Все категории")) {
+        System.out.println("\u001B[33mНаибольшие расходы в категории '" + maxCategory + "' в периоде " + startDateInput + " по " + endDateInput + ": " + maxCategoryExpenses + "\u001B[0m");
+      } else if (!selectedCategory.isEmpty()) {
+        return;
+      }
 
-  public void viewExpensesByMonthOfYear() {
-    System.out.println("Посмотреть расходы по категориям за год:");
-    System.out.println("Введите год (в формате yyyy):");
-    String yearInput = scanner.next();
-    int year;
-    try {
-      year = Integer.parseInt(yearInput);
-    } catch (NumberFormatException e) {
-      System.err.println("Неверный формат года.");
-      return;
-    }
-    System.out.println("Расходы по категориям за " + year + " год:");
-    Map<Month, Double> categoryExpensesPerMonth = new HashMap<>();
-    for (Month month : Month.values()) {
-      double totalExpenseForMonth = 0.0;
+      System.out.println("=========================================");
+      System.out.println("Таблица расходов по месяцам и категориям:");
+      System.out.println("Месяц/Год | Категория          | Расходы");
+      System.out.println("-----------------------------------------");
+
+      Map<String, Map<String, Double>> categoryExpensesByMonth = new HashMap<>();
+
       for (Expense expense : expenses) {
         Date expenseDate = parseDate(expense.getDate());
-        if (expenseDate != null) {
+        String expenseCategory = expense.getCategory();
+        if (expenseDate != null && (selectedCategory.equals("Все категории") || expenseCategory.equals(selectedCategory))
+            && expenseDate.compareTo(startDate) >= 0 && expenseDate.compareTo(endDate) <= 0) {
           Calendar cal = Calendar.getInstance();
           cal.setTime(expenseDate);
-          if (cal.get(Calendar.YEAR) == year && cal.get(Calendar.MONTH) == month.ordinal()) {
-            totalExpenseForMonth += expense.getAmount();
-          }
+          String monthYearKey = (cal.get(Calendar.MONTH) + 1) + "/" + cal.get(Calendar.YEAR); // Adding 1 to month as it is zero-based
+
+          categoryExpensesByMonth.computeIfAbsent(monthYearKey, k -> new HashMap<>());
+          categoryExpensesByMonth.get(monthYearKey).put(expenseCategory, categoryExpensesByMonth.get(monthYearKey).getOrDefault(expenseCategory, 0.0) + expense.getAmount());
         }
       }
-      categoryExpensesPerMonth.put(month, totalExpenseForMonth);
-    }
-    for (Month month : Month.values()) {
-      double amount = categoryExpensesPerMonth.getOrDefault(month, 0.0);
-      System.out.println("Месяц: " + month.getName());
-      System.out.println("Сумма затрат: " + amount);
-      System.out.println();
+
+      for (Map.Entry<String, Map<String, Double>> entry : categoryExpensesByMonth.entrySet()) {
+        String monthYear = entry.getKey();
+        Map<String, Double> expensesByCategory = entry.getValue();
+        for (Map.Entry<String, Double> categoryExpenseEntry : expensesByCategory.entrySet()) {
+          String category = categoryExpenseEntry.getKey();
+          double amount = categoryExpenseEntry.getValue();
+          System.out.printf("%-11s | %-18s | %.2f%n", monthYear, category, amount);
+        }
+      }
+    } else {
+      System.err.println("Неверный формат даты.");
     }
   }
 
   public void compareExpensesWithPreviousMonth() {
-    System.out.println("Сравнение расходов с предыдущим месяцем:");
-    System.out.println("Введите месяц (1-12) для сравнения:");
-    int monthToCompare = scanner.nextInt();
+    System.out.println("Сравнение расходов с текущим месяцем:");
 
-    if (monthToCompare >= 1 && monthToCompare <= 12) {
-      Calendar currentMonthStart = Calendar.getInstance();
-      Calendar previousMonthStart = Calendar.getInstance();
+    Calendar currentMonthStart = Calendar.getInstance();
+    currentMonthStart.set(Calendar.DAY_OF_MONTH, 1);
 
-      // Установка начала текущего месяца
-      currentMonthStart.set(Calendar.DAY_OF_MONTH, 1);
-      currentMonthStart.set(Calendar.MONTH, monthToCompare - 1); // -1, так как Calendar.MONTH начинается с 0 для января
+    Calendar previousMonthStart = Calendar.getInstance();
+    previousMonthStart.add(Calendar.MONTH, -1);
+    previousMonthStart.set(Calendar.DAY_OF_MONTH, 1);
 
-      // Установка начала предыдущего месяца
-      previousMonthStart.set(Calendar.MONTH, monthToCompare - 2); // -2, так как Calendar.MONTH начинается с 0, и мы вычитаем 2 для предыдущего месяца
-      previousMonthStart.set(Calendar.DAY_OF_MONTH, 1);
+    double totalExpensesCurrent = getTotalExpensesInMonth(currentMonthStart);
+    double totalExpensesPrevious = getTotalExpensesInMonth(previousMonthStart);
 
-      double totalExpensesCurrent = getTotalExpensesInMonth(currentMonthStart);
-      double totalExpensesPrevious = getTotalExpensesInMonth(previousMonthStart);
+    System.out.println("Расходы в текущем месяце: " + totalExpensesCurrent);
+    System.out.println("Расходы в предыдущем месяце: " + totalExpensesPrevious);
 
-      System.out.println("Расходы в текущем месяце: " + totalExpensesCurrent);
-      System.out.println("Расходы в предыдущем месяце: " + totalExpensesPrevious);
-    } else {
-      System.err.println("Неверный формат месяца.");
-    }
-  }
+    double difference = totalExpensesCurrent - totalExpensesPrevious;
 
-  public void compareExpensesByYear() {
-    System.out.println("Сравнение расходов с предыдущим годом:");
-    System.out.println("Введите год для сравнения (в формате yyyy):");
-    int yearToCompare = scanner.nextInt();
-
-    if (yearToCompare >= 1000 && yearToCompare <= 9999) {
-      double totalExpensesThisYear = getTotalExpensesForYear(yearToCompare);
-      double totalExpensesPreviousYear = getTotalExpensesForYear(yearToCompare - 1);
-
-      System.out.println("Расходы в " + yearToCompare + " году: " + totalExpensesThisYear);
-      System.out.println("Расходы в " + (yearToCompare - 1) + " году: " + totalExpensesPreviousYear);
-
-      if (totalExpensesPreviousYear != 0) {
-        double difference = totalExpensesThisYear - totalExpensesPreviousYear;
-        double percentageChange = (difference / totalExpensesPreviousYear) * 100;
-        System.out.println("Изменение: " + difference + " (" + percentageChange + "%)");
+    if (totalExpensesPrevious == 0) {
+      if (difference > 0) {
+        System.out.println("Расходы в текущем месяце больше на: " + difference);
+        System.out.println("Изменение в процентах: Нет данных (предыдущие расходы равны нулю)");
+      } else if (difference < 0) {
+        System.out.println("Расходы в текущем месяце меньше на: " + Math.abs(difference));
+        System.out.println("Изменение в процентах: Нет данных (предыдущие расходы равны нулю)");
       } else {
-        System.out.println("Нет данных о расходах за предыдущий год.");
+        System.out.println("Расходы в текущем месяце равны расходам в предыдущем месяце.");
+        System.out.println("Изменение в процентах: Нет данных (предыдущие расходы равны нулю)");
       }
     } else {
-      System.err.println("Неверный формат года.");
+      double percentageChange = (difference / Math.abs(totalExpensesPrevious)) * 100;
+
+      if (difference > 0) {
+        System.out.println("Расходы в текущем месяце больше на: " + difference);
+        System.out.println("Изменение в процентах: " + percentageChange + "%");
+      } else if (difference < 0) {
+        System.out.println("Расходы в текущем месяце меньше на: " + Math.abs(difference));
+        System.out.println("Изменение в процентах: " + Math.abs(percentageChange) + "%");
+      } else {
+        System.out.println("Расходы в текущем месяце равны расходам в предыдущем месяце.");
+        System.out.println("Изменение в процентах: 0%");
+      }
     }
   }
+
+
+
+
+  public void compareExpensesByYear() {
+    System.out.println("Сравнение расходов с текущим годом:");
+
+    Calendar currentYearStart = Calendar.getInstance();
+    currentYearStart.set(Calendar.DAY_OF_YEAR, 1);
+
+    Calendar previousYearStart = Calendar.getInstance();
+    previousYearStart.add(Calendar.YEAR, -1);
+    previousYearStart.set(Calendar.DAY_OF_YEAR, 1);
+
+    int currentYear = currentYearStart.get(Calendar.YEAR);  // Get the current year
+    int previousYear = currentYear - 1;  // Calculate the previous year
+
+    double totalExpensesThisYear = getTotalExpensesForYear(currentYear);
+    double totalExpensesPreviousYear = getTotalExpensesForYear(previousYear);
+
+    System.out.println("Расходы в текущем году: " + totalExpensesThisYear);
+    System.out.println("Расходы в предыдущем году: " + totalExpensesPreviousYear);
+
+    double difference = totalExpensesThisYear - totalExpensesPreviousYear;
+
+    if (totalExpensesPreviousYear != 0) {
+      double percentageChange = (difference / totalExpensesPreviousYear) * 100;
+
+      if (difference > 0) {
+        System.out.println("Расходы в текущем году больше на: " + difference);
+        System.out.println("Изменение в процентах: " + percentageChange + "%");
+      } else if (difference < 0) {
+        System.out.println("Расходы в текущем году меньше на: " + Math.abs(difference));
+        System.out.println("Изменение в процентах: " + Math.abs(percentageChange) + "%");
+      } else {
+        System.out.println("Расходы в текущем году равны расходам в предыдущем году.");
+      }
+    } else {
+      System.out.println("Нет данных о расходах в предыдущем году.");
+    }
+  }
+
+
 
   private double getTotalExpensesForYear(int year) {
     double totalExpenses = 0.0;
