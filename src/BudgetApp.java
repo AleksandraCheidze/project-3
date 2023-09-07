@@ -1,4 +1,7 @@
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -12,24 +15,31 @@ public class BudgetApp {
   private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
 
   public BudgetApp() {
-    categoryManager = new ExpenseCategoryManager();
+
     scanner = new Scanner(System.in);
+    categoryManager = new ExpenseCategoryManager(scanner);
     loadExpensesFromFile();
   }
 
-  public static int getUserChoice(Scanner scanner) {
+  public static int getUserChoice() {
     return -1;
   }
 
   private void printMenu() {
-    System.out.println("1. Добавить расходы");
-    System.out.println("2. Посмотреть отчет расходов по дням");
-    System.out.println("3. Посмотреть расходы за период по категориям");
-    System.out.println("4. Посмотреть расходы за год по месяцам ");
-    System.out.println("5. Сравнить расходы с предыдущим месяцем");
-    System.out.println("6. Управление категориями");
-    System.out.println("7. Выйти");
+    System.out.println("╔════════════════════════════════════════════════╗");
+    System.out.println("║              Бюджетное приложение              ║");
+    System.out.println("╠════════════════════════════════════════════════╣");
+    System.out.println("║  1. Добавить расходы                           ║");
+    System.out.println("║  2. Посмотреть отчет расходов по дням          ║");
+    System.out.println("║  3. Посмотреть расходы за период по категориям ║");
+    System.out.println("║  4. Посмотреть расходы за год по месяцам       ║");
+    System.out.println("║  5. Сравнить расходы с предыдущим месяцем      ║");
+    System.out.println("║  6. Управление категориями                     ║");
+    System.out.println("║  7. Выйти                                      ║");
+    System.out.println("╚════════════════════════════════════════════════╝");
+    System.out.print("Выберите действие: ");
   }
+
 
   public void start() {
     while (true) {
@@ -60,7 +70,7 @@ public class BudgetApp {
           compareExpensesWithPreviousMonth();
           break;
         case 6:
-          categoryManager.manageCategories(scanner);
+          categoryManager.manageExpenseCategories();
           break;
         case 7:
           exit();
