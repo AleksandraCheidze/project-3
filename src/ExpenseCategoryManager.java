@@ -8,7 +8,7 @@ import java.util.Scanner;
 
 public class ExpenseCategoryManager {
 
-  private static final String CATEGORIES_FILE_PATH = "categories.txt";
+  private static final String CATEGORIES_FILE_PATH = "res/categories.txt";
   private final List<String> categories;
 
   public ExpenseCategoryManager() {
@@ -131,7 +131,6 @@ public class ExpenseCategoryManager {
         }
       }
     } catch (FileNotFoundException e) {
-      // Файл не найден, что нормально, если он пуст или отсутствует
     } catch (Exception e) {
       System.err.println("Ошибка при чтении категорий из файла: " + e.getMessage());
     }

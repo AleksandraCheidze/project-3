@@ -51,26 +51,19 @@ public class ExpenseReportGenerator {
       System.out.println("Категория: " + selectedCategory);
       System.out.println("Период: с " + startDateInput + " по " + endDateInput);
 
-      // Внутренний компаратор для сортировки расходов по дате внутри каждой категории
       Comparator<Expense> expenseDateComparator = (e1, e2) -> {
         Date date1 = parseDate(e1.getDate());
         Date date2 = parseDate(e2.getDate());
         if (date1 != null && date2 != null) {
           return date1.compareTo(date2);
         } else {
-          return 0; // Обработайте ситуацию, если даты неверного формата
+          return 0;
         }
       };
-
-      // Вывод расходов по каждой категории
       for (Map.Entry<String, List<Expense>> entry : categoryExpensesMap.entrySet()) {
         String category = entry.getKey();
         List<Expense> categoryExpenses = entry.getValue();
-
-        // Сортировка расходов внутри категории по дате
         categoryExpenses.sort(expenseDateComparator);
-
-        // Вывод отсортированных расходов
         for (Expense expense : categoryExpenses) {
           double amount = expense.getAmount();
           System.out.printf("%-11s | %-18s | %.1f%n", expense.getDate(), category, amount);
@@ -80,7 +73,6 @@ public class ExpenseReportGenerator {
       System.err.println("Неверный формат даты.");
     }
   }
-
 
   /**
    * Compares expenses of the current month with the previous month.
@@ -143,8 +135,8 @@ public class ExpenseReportGenerator {
     previousYearStart.add(Calendar.YEAR, -1);
     previousYearStart.set(Calendar.DAY_OF_YEAR, 1);
 
-    int currentYear = currentYearStart.get(Calendar.YEAR);  // Get the current year
-    int previousYear = currentYear - 1;  // Calculate the previous year
+    int currentYear = currentYearStart.get(Calendar.YEAR);
+    int previousYear = currentYear - 1;
 
     double totalExpensesThisYear = getTotalExpensesForYear(currentYear);
     double totalExpensesPreviousYear = getTotalExpensesForYear(previousYear);

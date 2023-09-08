@@ -1,22 +1,22 @@
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.InputMismatchException;
+import java.util.List;
+import java.util.Scanner;
 
 public class BudgetApp {
 
   private static final String FILE_PATH = "res/expenses.txt";
   private final Scanner scanner;
-  private final List<Expense> expenses = new ArrayList<>();
+  private final List<Expense> expenses;
   private final ExpenseCategoryManager categoryManager;
   private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
 
   public BudgetApp() {
     categoryManager = new ExpenseCategoryManager();
     scanner = new Scanner(System.in);
-    loadExpensesFromFile();
+    expenses = Expense.loadExpensesFromFile(FILE_PATH);
   }
 
   /**
@@ -34,7 +34,7 @@ public class BudgetApp {
         case 2 -> showReportsMenu();
         case 3 -> categoryManager.manageCategories(scanner);
         case 4 -> {
-          saveExpensesToFile();
+          Expense.saveExpensesToFile(expenses, FILE_PATH);
           exit();
           return;
         }
@@ -63,7 +63,7 @@ public class BudgetApp {
     ExpenseReportGenerator reportGenerator = new ExpenseReportGenerator(expenses);
     while (isSubMenuRunning) {
       System.out.println("Меню отчетов:");
-      System.out.println("1. Таблица расходов по месяцам и категориям");
+      System.out.println("1. Отчет о расходах по категориям и периоду");
       System.out.println("2. Сравнить расходы текущего месяца с прошлым");
       System.out.println("3. Сравнить расходы текущего года с прошлым");
       System.out.println("4. Назад в главное меню");
@@ -110,82 +110,37 @@ public class BudgetApp {
 
     System.out.println("Введите сумму расхода:");
     double amount = getDoubleInput();
+    scanner.nextLine();
 
     System.out.println("Введите дату расхода (в формате dd.MM.yyyy):");
-    Date date = getDateInput();
-
-    if (date != null) {
-      Expense newExpense = new Expense(category, amount, dateFormat.format(date));
-      expenses.add(newExpense);
-      System.out.println("Расход добавлен успешно!");
-    } else {
-      System.err.println("Неверный формат даты.");
+    String dateStr = scanner.nextLine().trim();
+    Date date;
+    try {
+      date = dateFormat.parse(dateStr);
+    } catch (ParseException e) {
+      System.err.println("Неверный формат даты. Используйте формат dd.MM.yyyy.");
+      return;
     }
+
+    Expense expense = new Expense(category, amount, dateFormat.format(date));
+    expenses.add(expense);
+    System.out.println("Расход успешно добавлен.");
   }
 
   private double getDoubleInput() {
-    double amount;
     while (true) {
       try {
-        amount = Double.parseDouble(scanner.nextLine());
-        break;
-      } catch (NumberFormatException e) {
-        System.err.println("Пожалуйста, введите действительное число.");
+        return scanner.nextDouble();
+      } catch (InputMismatchException e) {
+        System.err.println("Неверный ввод. Введите число.");
+        scanner.nextLine();
       }
-    }
-    return amount;
-  }
-
-  private Date getDateInput() {
-    Date date = null;
-    while (date == null) {
-      try {
-        String dateString = scanner.nextLine();
-        date = dateFormat.parse(dateString);
-      } catch (ParseException e) {
-        System.err.println("Неверный формат даты. Введите дату в формате dd.MM.yyyy:");
-      }
-    }
-    return date;
-  }
-
-  /**
-   * Prompts the user to manage expense categories.
-   */
-  private void loadExpensesFromFile() {
-    try (Scanner fileScanner = new Scanner(new File(FILE_PATH))) {
-      while (fileScanner.hasNextLine()) {
-        String line = fileScanner.nextLine();
-        String[] parts = line.split(" ");
-        if (parts.length >= 3) {
-          String category = parts[0];
-          double amount = Double.parseDouble(parts[1]);
-          String date = parts[2];
-          expenses.add(new Expense(category, amount, date));
-        }
-      }
-    } catch (Exception e) {
-      System.err.println("Невозможно считать расходы: " + e.getMessage());
-    }
-  }
-
-  /**
-   * Saves expenses to the "expenses.txt" file.
-   */
-  private void saveExpensesToFile() {
-    try (FileWriter writer = new FileWriter(FILE_PATH)) {
-      for (Expense expense : expenses) {
-        writer.write(
-            expense.getCategory() + " " + expense.getAmount() + " " + expense.getDate() + "\n");
-      }
-      System.out.println("Расходы сохранены.");
-    } catch (IOException e) {
-      System.err.println("Ошибка при сохранении расходов: " + e.getMessage());
     }
   }
 
   private void exit() {
     System.out.println("Выход");
     scanner.close();
+    Expense.saveExpensesToFile(expenses, FILE_PATH);
   }
 }
