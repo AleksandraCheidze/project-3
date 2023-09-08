@@ -1,5 +1,6 @@
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.InputMismatchException;
 import java.util.List;
@@ -93,14 +94,14 @@ public class BudgetApp {
   /**
    * Prompts the user to add a new expense and handles the addition.
    */
-  private void addExpense() {
+  public void addExpense() {
     System.out.println("Выберите категорию расхода:");
     List<String> categories = categoryManager.getCategories();
     for (int i = 0; i < categories.size(); i++) {
       System.out.println((i + 1) + ". " + categories.get(i));
     }
 
-    int categoryChoice = getUserChoice(scanner);
+    int categoryChoice = getUserChoice(this.scanner);
     if (categoryChoice < 1 || categoryChoice > categories.size()) {
       System.err.println("Неверный выбор категории.");
       return;
@@ -110,16 +111,49 @@ public class BudgetApp {
 
     System.out.println("Введите сумму расхода:");
     double amount = getDoubleInput();
-    scanner.nextLine();
+    this.scanner.nextLine();
 
-    System.out.println("Введите дату расхода (в формате dd.MM.yyyy):");
-    String dateStr = scanner.nextLine().trim();
-    Date date;
-    try {
-      date = dateFormat.parse(dateStr);
-    } catch (ParseException e) {
-      System.err.println("Неверный формат даты. Используйте формат dd.MM.yyyy.");
-      return;
+    boolean validDate = false;
+    Date date = null;
+
+    while (!validDate) {
+      System.out.println("Введите дату расхода (в формате dd.MM.yyyy):");
+      String dateStr = this.scanner.nextLine();
+
+      // Разбиваем введенную дату на день, месяц и год
+      String[] dateParts = dateStr.split("\\.");
+      if (dateParts.length != 3) {
+        System.err.println("Неверный формат даты. Используйте формат dd.MM.yyyy.");
+        continue;
+      }
+
+      int day = Integer.parseInt(dateParts[0]);
+      int month = Integer.parseInt(dateParts[1]);
+      int year = Integer.parseInt(dateParts[2]);
+
+      // Получаем календарь и устанавливаем его на введенную дату
+      Calendar calendar = Calendar.getInstance();
+      calendar.setLenient(false); // Отключаем "мягкое" преобразование дат
+
+      try {
+        calendar.set(Calendar.DAY_OF_MONTH, day);
+        calendar.set(Calendar.MONTH, month - 1); // Месяцы в Calendar начинаются с 0
+        calendar.set(Calendar.YEAR, year);
+
+        // Проверяем, что день, месяц и год находятся в допустимых диапазонах
+        if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 2100) {
+          System.err.println("Неверные значение даты. Пожалуйста, введите корректную дату.");
+          continue;
+        }
+
+        // Пытаемся распарсить введенную дату
+        date = calendar.getTime();
+        dateFormat.format(date); // Проверка на некорректные даты (например, 30 февраля)
+
+        validDate = true;
+      } catch (IllegalArgumentException e) {
+        System.err.println("Неверная дата. Пожалуйста, введите корректную дату.");
+      }
     }
 
     Expense expense = new Expense(category, amount, dateFormat.format(date));
