@@ -1,5 +1,8 @@
 Еда
 Транспорт
 Квартплата
+<<<<<<< HEAD
 Одежда
 Прочее
+=======
+>>>>>>> f899c08 (feat: change viewExpensesByCategoryAndPeriod, compareExpensesWithPreviousMonth, compareExpensesByYear)
