@@ -35,21 +35,15 @@ public class ExpenseReportGenerator {
 
     if (startDate != null && endDate != null) {
       String selectedCategory = categoryChoice == 0 ? "Все категории" : categories.get(categoryChoice - 1);
-      Map<String, Double> categoryExpensesMap = new HashMap<>();
-      double maxCategoryExpenses = 0.0;
+      Map<String, List<Expense>> categoryExpensesMap = new HashMap<>();
 
       for (Expense expense : expenses) {
         Date expenseDate = parseDate(expense.getDate());
         String expenseCategory = expense.getCategory();
         if (expenseDate != null && (selectedCategory.equals("Все категории") || expenseCategory.equals(selectedCategory))
             && expenseDate.compareTo(startDate) >= 0 && expenseDate.compareTo(endDate) <= 0) {
-
-          double categoryExpense = categoryExpensesMap.getOrDefault(expenseCategory, 0.0) + expense.getAmount();
-          categoryExpensesMap.put(expenseCategory, categoryExpense);
-
-          if (categoryExpense > maxCategoryExpenses) {
-            maxCategoryExpenses = categoryExpense;
-          }
+          categoryExpensesMap.computeIfAbsent(expenseCategory, k -> new ArrayList<>());
+          categoryExpensesMap.get(expenseCategory).add(expense);
         }
       }
 
@@ -57,62 +51,36 @@ public class ExpenseReportGenerator {
       System.out.println("Категория: " + selectedCategory);
       System.out.println("Период: с " + startDateInput + " по " + endDateInput);
 
-      // Создайте список записей расходов для сортировки
-      List<Map.Entry<String, Double>> sortedEntries = new ArrayList<>(categoryExpensesMap.entrySet());
-
-      // Определите компаратор для сортировки в порядке убывания (от большего к меньшему)
-      sortedEntries.sort((entry1, entry2) -> Double.compare(entry2.getValue(), entry1.getValue()));
-
-      for (Map.Entry<String, Double> entry : sortedEntries) {
-        String category = entry.getKey();
-        double amount = entry.getValue();
-        System.out.printf("%-11s | %-18s | %.1f%n", startDateInput + " - " + endDateInput, category, amount);
-      }
-
-      if (selectedCategory.equals("Все категории")) {
-        if (!sortedEntries.isEmpty()) {
-          System.out.println("\u001B[33mНаибольшие расходы в категории '" + sortedEntries.get(0).getKey() + "' в периоде " + startDateInput + " по " + endDateInput + ": " + String.format("%.1f", sortedEntries.get(0).getValue()) + "\u001B[0m");
+      // Внутренний компаратор для сортировки расходов по дате внутри каждой категории
+      Comparator<Expense> expenseDateComparator = (e1, e2) -> {
+        Date date1 = parseDate(e1.getDate());
+        Date date2 = parseDate(e2.getDate());
+        if (date1 != null && date2 != null) {
+          return date1.compareTo(date2);
         } else {
-          System.out.println("Нет расходов в выбранной категории в указанный период.");
+          return 0; // Обработайте ситуацию, если даты неверного формата
         }
-      } else if (!selectedCategory.isEmpty()) {
-        return;
-      }
+      };
 
-      System.out.println("=========================================");
-      System.out.println("Таблица расходов по месяцам и категориям:");
-      System.out.println("Месяц/Год | Категория          | Расходы");
-      System.out.println("-----------------------------------------");
+      // Вывод расходов по каждой категории
+      for (Map.Entry<String, List<Expense>> entry : categoryExpensesMap.entrySet()) {
+        String category = entry.getKey();
+        List<Expense> categoryExpenses = entry.getValue();
 
-      Map<String, Map<String, Double>> categoryExpensesByMonth = new HashMap<>();
+        // Сортировка расходов внутри категории по дате
+        categoryExpenses.sort(expenseDateComparator);
 
-      for (Expense expense : expenses) {
-        Date expenseDate = parseDate(expense.getDate());
-        String expenseCategory = expense.getCategory();
-        if (expenseDate != null && (selectedCategory.equals("Все категории") || expenseCategory.equals(selectedCategory))
-            && expenseDate.compareTo(startDate) >= 0 && expenseDate.compareTo(endDate) <= 0) {
-          Calendar cal = Calendar.getInstance();
-          cal.setTime(expenseDate);
-          String monthYearKey = (cal.get(Calendar.MONTH) + 1) + "/" + cal.get(Calendar.YEAR); // Adding 1 to month as it is zero-based
-
-          categoryExpensesByMonth.computeIfAbsent(monthYearKey, k -> new HashMap<>());
-          categoryExpensesByMonth.get(monthYearKey).put(expenseCategory, categoryExpensesByMonth.get(monthYearKey).getOrDefault(expenseCategory, 0.0) + expense.getAmount());
-        }
-      }
-
-      for (Map.Entry<String, Map<String, Double>> entry : categoryExpensesByMonth.entrySet()) {
-        String monthYear = entry.getKey();
-        Map<String, Double> expensesByCategory = entry.getValue();
-        for (Map.Entry<String, Double> categoryExpenseEntry : expensesByCategory.entrySet()) {
-          String category = categoryExpenseEntry.getKey();
-          double amount = categoryExpenseEntry.getValue();
-          System.out.printf("%-11s | %-18s | %.1f%n", monthYear, category, amount);
+        // Вывод отсортированных расходов
+        for (Expense expense : categoryExpenses) {
+          double amount = expense.getAmount();
+          System.out.printf("%-11s | %-18s | %.1f%n", expense.getDate(), category, amount);
         }
       }
     } else {
       System.err.println("Неверный формат даты.");
     }
   }
+
 
   /**
    * Compares expenses of the current month with the previous month.
