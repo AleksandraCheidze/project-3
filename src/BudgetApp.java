@@ -141,6 +141,5 @@ public class BudgetApp {
   private void exit() {
     System.out.println("Выход");
     scanner.close();
-    Expense.saveExpensesToFile(expenses, FILE_PATH);
   }
 }
