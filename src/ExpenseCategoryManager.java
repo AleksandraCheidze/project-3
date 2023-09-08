@@ -8,49 +8,59 @@ import java.util.Scanner;
 
 public class ExpenseCategoryManager {
 
-  // Путь к файлу для хранения категорий
   private static final String CATEGORIES_FILE_PATH = "categories.txt";
-
-  // Список для хранения категорий расходов
   private final List<String> categories;
 
-  // Конструктор для инициализации и загрузки категорий из файла
   public ExpenseCategoryManager() {
     categories = new ArrayList<>();
     loadCategoriesFromFile();
   }
 
-  // Метод для добавления новой категории
+  /**
+   * Adds a new expense category.
+   *
+   * @param category The name of the category to add.
+   */
   public void addCategory(String category) {
-    if (category != null && !category.isEmpty()) {
-      if (categories.contains(category)) {
-        System.out.println("Категория уже существует: " + category);
-      } else {
+    if (category != null && !category.trim().isEmpty()) {
+      if (!categories.contains(category)) {
         categories.add(category);
         updateCategories();
-        System.out.println("Категория добавлена: " + category);
+        System.out.println("Категория успешно добавлена: " + category);
+      } else {
+        System.out.println("Категория уже существует: " + category);
       }
     } else {
       System.out.println("Недопустимое название категории.");
     }
   }
 
-  // Метод для удаления категории
+  /**
+   * Removes an expense category.
+   *
+   * @param category The name of the category to remove.
+   */
   public void removeCategory(String category) {
-    if (categories.remove(category)) {
-      updateCategories();
-      System.out.println("Категория удалена: " + category);
+    if (category != null && !category.trim().isEmpty()) {
+      if (categories.remove(category)) {
+        updateCategories();
+        System.out.println("Категория успешно удалена: " + category);
+      } else {
+        System.out.println("Категория не найдена: " + category);
+      }
     } else {
-      System.out.println("Категория не найдена: " + category);
+      System.out.println("Недопустимое название категории.");
     }
   }
-
-  // Метод для получения списка категорий
   public List<String> getCategories() {
     return categories;
   }
 
-  // Метод для управления категориями интерактивно
+  /**
+   * Manages categories interactively, allowing for adding and removing categories.
+   *
+   * @param scanner A Scanner object for user input.
+   */
   public void manageCategories(Scanner scanner) {
     while (true) {
       System.out.println("Управление категориями:");
@@ -78,31 +88,30 @@ public class ExpenseCategoryManager {
     }
   }
 
-  // Метод для добавления категории на основе ввода пользователя
+  /**
+   * Adds a category based on user input.
+   *
+   * @param scanner A Scanner object for user input.
+   */
   private void addCategoryFromInput(Scanner scanner) {
     System.out.println("Введите название новой категории:");
     scanner.nextLine(); // Очистка буфера
     String newCategory = scanner.nextLine().trim();
-    if (!newCategory.isEmpty()) {
-      addCategory(newCategory);
-    } else {
-      System.err.println("Название категории не может быть пустым.");
-    }
+    addCategory(newCategory);
   }
 
-  // Метод для удаления категории на основе ввода пользователя
+  /**
+   * Removes a category based on user input.
+   *
+   * @param scanner A Scanner object for user input.
+   */
   private void removeCategoryFromInput(Scanner scanner) {
     System.out.println("Введите название категории для удаления:");
     scanner.nextLine(); // Очистка буфера
     String categoryToRemove = scanner.nextLine().trim();
-    if (!categoryToRemove.isEmpty()) {
-      removeCategory(categoryToRemove);
-    } else {
-      System.err.println("Название категории не может быть пустым.");
-    }
+    removeCategory(categoryToRemove);
   }
 
-  // Метод для обновления файла с категориями на основе текущего списка
   private void updateCategories() {
     try (FileWriter categoriesWriter = new FileWriter(CATEGORIES_FILE_PATH)) {
       for (String category : categories) {
@@ -113,7 +122,6 @@ public class ExpenseCategoryManager {
     }
   }
 
-  // Метод для загрузки категорий из файла
   private void loadCategoriesFromFile() {
     try (Scanner categoriesScanner = new Scanner(new File(CATEGORIES_FILE_PATH))) {
       while (categoriesScanner.hasNextLine()) {

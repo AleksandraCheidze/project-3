@@ -19,6 +19,12 @@ public class BudgetApp {
     loadExpensesFromFile();
   }
 
+  /**
+   * Starts the Expense and Category Tracking application.
+   * This method initializes the application, provides a user interface, and manages user interactions.
+   * It allows users to record expenses, manage expense categories, and generate expense reports.
+   * The application continues to run until the user chooses to exit.
+   */
   public void run() {
     while (true) {
       displayMainMenu();
@@ -37,6 +43,9 @@ public class BudgetApp {
     }
   }
 
+  /**
+   * Displays the main menu and handles user interactions.
+   */
   private void displayMainMenu() {
     System.out.println("╔════════════════════════════════════════════════╗");
     System.out.println("║              Бюджетное приложение              ║");
@@ -81,6 +90,9 @@ public class BudgetApp {
     }
   }
 
+  /**
+   * Prompts the user to add a new expense and handles the addition.
+   */
   private void addExpense() {
     System.out.println("Выберите категорию расхода:");
     List<String> categories = categoryManager.getCategories();
@@ -137,6 +149,9 @@ public class BudgetApp {
     return date;
   }
 
+  /**
+   * Prompts the user to manage expense categories.
+   */
   private void loadExpensesFromFile() {
     try (Scanner fileScanner = new Scanner(new File(FILE_PATH))) {
       while (fileScanner.hasNextLine()) {
@@ -154,6 +169,9 @@ public class BudgetApp {
     }
   }
 
+  /**
+   * Saves expenses to the "expenses.txt" file.
+   */
   private void saveExpensesToFile() {
     try (FileWriter writer = new FileWriter(FILE_PATH)) {
       for (Expense expense : expenses) {

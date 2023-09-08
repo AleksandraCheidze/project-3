@@ -13,6 +13,9 @@ public class ExpenseReportGenerator {
     this.scanner = new Scanner(System.in);
   }
 
+  /**
+   * Generates an expense report based on user-selected category and date range.
+   */
   public void viewExpensesByCategoryAndPeriod() {
     System.out.println("Отчет о расходах по категориям и периоду:");
     System.out.println("Выберите категорию или введите 0 для выбора всех категорий:");
@@ -111,6 +114,9 @@ public class ExpenseReportGenerator {
     }
   }
 
+  /**
+   * Compares expenses of the current month with the previous month.
+   */
   public void compareExpensesWithPreviousMonth() {
     System.out.println("Сравнение расходов с текущим месяцем:");
 
@@ -156,6 +162,9 @@ public class ExpenseReportGenerator {
     }
   }
 
+  /**
+   * Compares expenses of the current year with the previous year.
+   */
   public void compareExpensesByYear() {
     System.out.println("Сравнение расходов с текущим годом:");
 
@@ -194,6 +203,12 @@ public class ExpenseReportGenerator {
     }
   }
 
+  /**
+   * Calculates the total expenses for a specific year.
+   *
+   * @param year The year for which expenses are calculated.
+   * @return The total expenses for the specified year.
+   */
   private double getTotalExpensesForYear(int year) {
     double totalExpenses = 0.0;
     for (Expense expense : expenses) {
@@ -209,6 +224,12 @@ public class ExpenseReportGenerator {
     return totalExpenses;
   }
 
+  /**
+   * Calculates the total expenses for a specific month.
+   *
+   * @param monthStart A Calendar instance representing the start of the month.
+   * @return The total expenses for the specified month.
+   */
   private double getTotalExpensesInMonth(Calendar monthStart) {
     double totalExpenses = 0.0;
     for (Expense expense : expenses) {
@@ -225,6 +246,11 @@ public class ExpenseReportGenerator {
     return totalExpenses;
   }
 
+  /**
+   * Retrieves a list of distinct expense categories from the expenses list.
+   *
+   * @return List of distinct expense categories.
+   */
   private List<String> getDistinctCategories() {
     List<String> distinctCategories = new ArrayList<>();
     for (Expense expense : expenses) {
@@ -236,6 +262,12 @@ public class ExpenseReportGenerator {
     return distinctCategories;
   }
 
+  /**
+   * Parses a date string into a Date object.
+   *
+   * @param dateStr The date string to be parsed.
+   * @return A Date object representing the parsed date, or null if parsing fails.
+   */
   private Date parseDate(String dateStr) {
     try {
       return dateFormat.parse(dateStr);
@@ -245,6 +277,13 @@ public class ExpenseReportGenerator {
     }
   }
 
+  /**
+   * Prompts the user for a choice and ensures it falls within a specified range.
+   *
+   * @param scanner A Scanner object for user input.
+   * @param max     The maximum allowed choice value.
+   * @return The user's valid choice.
+   */
   private int getUserChoice(Scanner scanner, int max) {
     while (true) {
       try {
