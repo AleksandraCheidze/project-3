@@ -2,38 +2,42 @@
 
 ## Project Description
 
-The "Expense and Category Tracking" project is a budget management application developed in Java.
-The application allows users to keep track of their finances by recording expenses in different
-categories and managing the list of categories.
-The main idea is to provide a tool for monitoring and analyzing expenses across various aspects.
+The "Expense and Category Tracking" project is a Java-based budget management application designed
+to help users efficiently manage their finances. This application enables users to track their
+expenses across various categories, create and manage expense records, and generate insightful
+financial reports. It offers a comprehensive solution for monitoring and analyzing personal
+expenses.
 
 ## Technical Requirements
 
-- Language Version: Java 18-20.
-- Dependencies: JUnit 8 (for testing).
-- Entry Point: The main application file is `Main.java`, where the `main()` method is located, and
-  the execution of the application starts.
-- Required Files: The application uses `expenses.txt` to store expense data and `categories.txt` to
-  store the list of categories.
+- **Programming Language:** Java 18-20.
+- **Dependencies:** JUnit 8 (for testing).
+- **Entry Point:** The primary entry point for the application is the `Main.java` file, housing
+  the `main()` method that initiates the application's execution.
+- **Required Files:** The application utilizes two essential files, `expenses.txt` for storing
+  expense data and `categories.txt` for maintaining a list of categories.
 
 ## Project Structure
 
-The project consists of the following classes and interfaces:
+The project is organized around key classes and interfaces:
 
-- `BudgetApp`: The main application class that manages user interaction, expense addition, and
-  report generation.
-- `ExpenseCategoryManager`: A class for managing expense categories, including adding and removing
-  categories.
-- `Expense`: A class representing an expense with fields for `category`, `amount`, and `date`.
-- `ExpenseReportGenerator`: A class for generating expense reports, including reports by day, by
-  category, and more.
+- **`BudgetApp`**: The central application class responsible for user interactions, expense
+  recording, and report generation.
+- **`ExpenseCategoryManager`**: A class dedicated to managing expense categories, offering
+  functionalities for adding and removing categories.
+- **`Expense`**: A class representing individual expense records, featuring fields
+  for `category`, `amount`, and `date`.
+- **`ExpenseReportGenerator`**: A versatile class designed for generating a variety of expense
+  reports, including reports categorized by day, by category, and more.
 
-The relationships between classes are as follows:
+The relationships between these classes are as follows:
 
-- `BudgetApp` uses `ExpenseCategoryManager` to manage categories.
-- `BudgetApp` also uses `ExpenseReportGenerator` to generate reports.
-- `ExpenseReportGenerator` works with data from the `Expense` class.
+- `BudgetApp` utilizes `ExpenseCategoryManager` to manage and manipulate categories.
+- `BudgetApp` leverages `ExpenseReportGenerator` for generating detailed financial reports.
+- `ExpenseReportGenerator` relies on data from the `Expense` class to produce meaningful reports.
 
-Tests for the project are described in separate test classes for each of the application classes,
-using the JUnit 5 library. They verify the core functions and methods of the application.
-
+To ensure code quality and functionality,
+the project includes comprehensive test coverage with dedicated
+test classes for each application class, utilizing the JUnit 8
+library. These tests validate the core functions and methods of
+the application, guaranteeing its reliability and accuracy.
