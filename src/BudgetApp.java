@@ -1,11 +1,13 @@
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class BudgetApp {
 
-  private static final String FILE_PATH = "expenses.txt";
+  private static final String FILE_PATH = "res/expenses.txt";
   private final Scanner scanner;
   private final List<Expense> expenses = new ArrayList<>();
   private final ExpenseCategoryManager categoryManager;
@@ -22,21 +24,15 @@ public class BudgetApp {
       displayMainMenu();
       int choice = getUserChoice(scanner);
       switch (choice) {
-        case 1:
-          addExpense();
-          break;
-        case 2:
-          showReportsMenu();
-          break;
-        case 3:
-          categoryManager.manageCategories(scanner);
-          break;
-        case 4:
+        case 1 -> addExpense();
+        case 2 -> showReportsMenu();
+        case 3 -> categoryManager.manageCategories(scanner);
+        case 4 -> {
           saveExpensesToFile();
           exit();
           return;
-        default:
-          System.err.println("Неверный выбор.");
+        }
+        default -> System.err.println("Неверный выбор.");
       }
     }
   }
@@ -64,20 +60,11 @@ public class BudgetApp {
       System.out.println("4. Назад в главное меню");
       int reportChoice = getUserChoice(scanner);
       switch (reportChoice) {
-        case 1:
-          reportGenerator.viewExpensesByCategoryAndPeriod();
-          break;
-        case 2:
-          reportGenerator.compareExpensesWithPreviousMonth();
-          break;
-        case 3:
-          reportGenerator.compareExpensesByYear();
-          break;
-        case 4:
-          isSubMenuRunning = false;
-          break;
-        default:
-          System.err.println("Неверный выбор.");
+        case 1 -> reportGenerator.viewExpensesByCategoryAndPeriod();
+        case 2 -> reportGenerator.compareExpensesWithPreviousMonth();
+        case 3 -> reportGenerator.compareExpensesByYear();
+        case 4 -> isSubMenuRunning = false;
+        default -> System.err.println("Неверный выбор.");
       }
     }
   }
@@ -162,7 +149,6 @@ public class BudgetApp {
           expenses.add(new Expense(category, amount, date));
         }
       }
-    } catch (FileNotFoundException e) {
     } catch (Exception e) {
       System.err.println("Невозможно считать расходы: " + e.getMessage());
     }

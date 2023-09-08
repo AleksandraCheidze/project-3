@@ -1,4 +1,7 @@
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -18,32 +21,27 @@ public class ExpenseCategoryManager {
   }
 
   // Метод для добавления новой категории
-  public boolean addCategory(String category) {
+  public void addCategory(String category) {
     if (category != null && !category.isEmpty()) {
       if (categories.contains(category)) {
         System.out.println("Категория уже существует: " + category);
-        return false;
       } else {
         categories.add(category);
         updateCategories();
         System.out.println("Категория добавлена: " + category);
-        return true;
       }
     } else {
       System.out.println("Недопустимое название категории.");
-      return false;
     }
   }
 
   // Метод для удаления категории
-  public boolean removeCategory(String category) {
+  public void removeCategory(String category) {
     if (categories.remove(category)) {
       updateCategories();
       System.out.println("Категория удалена: " + category);
-      return true;
     } else {
       System.out.println("Категория не найдена: " + category);
-      return false;
     }
   }
 
@@ -70,16 +68,12 @@ public class ExpenseCategoryManager {
       }
 
       switch (choice) {
-        case 1:
-          addCategoryFromInput(scanner);
-          break;
-        case 2:
-          removeCategoryFromInput(scanner);
-          break;
-        case 3:
+        case 1 -> addCategoryFromInput(scanner);
+        case 2 -> removeCategoryFromInput(scanner);
+        case 3 -> {
           return;
-        default:
-          System.err.println("Неверный выбор");
+        }
+        default -> System.err.println("Неверный выбор");
       }
     }
   }

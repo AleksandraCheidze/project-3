@@ -20,7 +20,7 @@ public class ExpenseReportGenerator {
     for (int i = 0; i < categories.size(); i++) {
       System.out.println((i + 1) + ". " + categories.get(i));
     }
-    int categoryChoice = getUserChoice(scanner, 0, categories.size() - 1); // Allow 0 for all categories
+    int categoryChoice = getUserChoice(scanner, categories.size() - 1); // Allow 0 for all categories
 
     System.out.println("Введите начальную дату (в формате dd.MM.yyyy):");
     String startDateInput = scanner.next();
@@ -32,40 +32,46 @@ public class ExpenseReportGenerator {
 
     if (startDate != null && endDate != null) {
       String selectedCategory = categoryChoice == 0 ? "Все категории" : categories.get(categoryChoice - 1);
-      double totalExpenses = 0.0;
       Map<String, Double> categoryExpensesMap = new HashMap<>();
-
-      System.out.println("======================================");
-      System.out.println("Категория: " + selectedCategory);
-      System.out.println("Период: с " + startDateInput + " по " + endDateInput);
+      double maxCategoryExpenses = 0.0;
 
       for (Expense expense : expenses) {
         Date expenseDate = parseDate(expense.getDate());
         String expenseCategory = expense.getCategory();
         if (expenseDate != null && (selectedCategory.equals("Все категории") || expenseCategory.equals(selectedCategory))
             && expenseDate.compareTo(startDate) >= 0 && expenseDate.compareTo(endDate) <= 0) {
-          totalExpenses += expense.getAmount();
 
-          categoryExpensesMap.put(expenseCategory, categoryExpensesMap.getOrDefault(expenseCategory, 0.0) + expense.getAmount());
+          double categoryExpense = categoryExpensesMap.getOrDefault(expenseCategory, 0.0) + expense.getAmount();
+          categoryExpensesMap.put(expenseCategory, categoryExpense);
+
+          if (categoryExpense > maxCategoryExpenses) {
+            maxCategoryExpenses = categoryExpense;
+          }
         }
       }
 
-      System.out.println("Итоговые расходы: " + totalExpenses);
+      System.out.println("======================================");
+      System.out.println("Категория: " + selectedCategory);
+      System.out.println("Период: с " + startDateInput + " по " + endDateInput);
 
-      String maxCategory = "";
-      double maxCategoryExpenses = 0.0;
+      // Создайте список записей расходов для сортировки
+      List<Map.Entry<String, Double>> sortedEntries = new ArrayList<>(categoryExpensesMap.entrySet());
 
-      for (Map.Entry<String, Double> entry : categoryExpensesMap.entrySet()) {
+      // Определите компаратор для сортировки в порядке убывания (от большего к меньшему)
+      sortedEntries.sort((entry1, entry2) -> Double.compare(entry2.getValue(), entry1.getValue()));
+
+      for (Map.Entry<String, Double> entry : sortedEntries) {
         String category = entry.getKey();
-        double categoryExpenses = entry.getValue();
-        if (categoryExpenses > maxCategoryExpenses) {
-          maxCategoryExpenses = categoryExpenses;
-          maxCategory = category;
-        }
+        double amount = entry.getValue();
+        System.out.printf("%-11s | %-18s | %.1f%n", startDateInput + " - " + endDateInput, category, amount);
       }
 
       if (selectedCategory.equals("Все категории")) {
-        System.out.println("\u001B[33mНаибольшие расходы в категории '" + maxCategory + "' в периоде " + startDateInput + " по " + endDateInput + ": " + maxCategoryExpenses + "\u001B[0m");
+        if (!sortedEntries.isEmpty()) {
+          System.out.println("\u001B[33mНаибольшие расходы в категории '" + sortedEntries.get(0).getKey() + "' в периоде " + startDateInput + " по " + endDateInput + ": " + String.format("%.1f", sortedEntries.get(0).getValue()) + "\u001B[0m");
+        } else {
+          System.out.println("Нет расходов в выбранной категории в указанный период.");
+        }
       } else if (!selectedCategory.isEmpty()) {
         return;
       }
@@ -97,7 +103,7 @@ public class ExpenseReportGenerator {
         for (Map.Entry<String, Double> categoryExpenseEntry : expensesByCategory.entrySet()) {
           String category = categoryExpenseEntry.getKey();
           double amount = categoryExpenseEntry.getValue();
-          System.out.printf("%-11s | %-18s | %.2f%n", monthYear, category, amount);
+          System.out.printf("%-11s | %-18s | %.1f%n", monthYear, category, amount);
         }
       }
     } else {
@@ -118,17 +124,17 @@ public class ExpenseReportGenerator {
     double totalExpensesCurrent = getTotalExpensesInMonth(currentMonthStart);
     double totalExpensesPrevious = getTotalExpensesInMonth(previousMonthStart);
 
-    System.out.println("Расходы в текущем месяце: " + totalExpensesCurrent);
-    System.out.println("Расходы в предыдущем месяце: " + totalExpensesPrevious);
+    System.out.println("Расходы в текущем месяце: " + String.format("%.1f", totalExpensesCurrent));
+    System.out.println("Расходы в предыдущем месяце: " + String.format("%.1f", totalExpensesPrevious));
 
     double difference = totalExpensesCurrent - totalExpensesPrevious;
 
     if (totalExpensesPrevious == 0) {
       if (difference > 0) {
-        System.out.println("Расходы в текущем месяце больше на: " + difference);
+        System.out.println("Расходы в текущем месяце больше на: " + String.format("%.1f", difference));
         System.out.println("Изменение в процентах: Нет данных (предыдущие расходы равны нулю)");
       } else if (difference < 0) {
-        System.out.println("Расходы в текущем месяце меньше на: " + Math.abs(difference));
+        System.out.println("Расходы в текущем месяце меньше на: " + String.format("%.1f", Math.abs(difference)));
         System.out.println("Изменение в процентах: Нет данных (предыдущие расходы равны нулю)");
       } else {
         System.out.println("Расходы в текущем месяце равны расходам в предыдущем месяце.");
@@ -138,20 +144,17 @@ public class ExpenseReportGenerator {
       double percentageChange = (difference / Math.abs(totalExpensesPrevious)) * 100;
 
       if (difference > 0) {
-        System.out.println("Расходы в текущем месяце больше на: " + difference);
-        System.out.println("Изменение в процентах: " + percentageChange + "%");
+        System.out.println("Расходы в текущем месяце больше на: " + String.format("%.1f", difference));
+        System.out.println("Изменение в процентах: " + String.format("%.1f", percentageChange) + "%");
       } else if (difference < 0) {
-        System.out.println("Расходы в текущем месяце меньше на: " + Math.abs(difference));
-        System.out.println("Изменение в процентах: " + Math.abs(percentageChange) + "%");
+        System.out.println("Расходы в текущем месяце меньше на: " + String.format("%.1f", Math.abs(difference)));
+        System.out.println("Изменение в процентах: " + String.format("%.1f", Math.abs(percentageChange)) + "%");
       } else {
         System.out.println("Расходы в текущем месяце равны расходам в предыдущем месяце.");
         System.out.println("Изменение в процентах: 0%");
       }
     }
   }
-
-
-
 
   public void compareExpensesByYear() {
     System.out.println("Сравнение расходов с текущим годом:");
@@ -169,8 +172,8 @@ public class ExpenseReportGenerator {
     double totalExpensesThisYear = getTotalExpensesForYear(currentYear);
     double totalExpensesPreviousYear = getTotalExpensesForYear(previousYear);
 
-    System.out.println("Расходы в текущем году: " + totalExpensesThisYear);
-    System.out.println("Расходы в предыдущем году: " + totalExpensesPreviousYear);
+    System.out.println("Расходы в текущем году: " + String.format("%.1f", totalExpensesThisYear));
+    System.out.println("Расходы в предыдущем году: " + String.format("%.1f", totalExpensesPreviousYear));
 
     double difference = totalExpensesThisYear - totalExpensesPreviousYear;
 
@@ -178,11 +181,11 @@ public class ExpenseReportGenerator {
       double percentageChange = (difference / totalExpensesPreviousYear) * 100;
 
       if (difference > 0) {
-        System.out.println("Расходы в текущем году больше на: " + difference);
-        System.out.println("Изменение в процентах: " + percentageChange + "%");
+        System.out.println("Расходы в текущем году больше на: " + String.format("%.1f", difference));
+        System.out.println("Изменение в процентах: " + String.format("%.1f", percentageChange) + "%");
       } else if (difference < 0) {
-        System.out.println("Расходы в текущем году меньше на: " + Math.abs(difference));
-        System.out.println("Изменение в процентах: " + Math.abs(percentageChange) + "%");
+        System.out.println("Расходы в текущем году меньше на: " + String.format("%.1f", Math.abs(difference)));
+        System.out.println("Изменение в процентах: " + String.format("%.1f", Math.abs(percentageChange)) + "%");
       } else {
         System.out.println("Расходы в текущем году равны расходам в предыдущем году.");
       }
@@ -190,8 +193,6 @@ public class ExpenseReportGenerator {
       System.out.println("Нет данных о расходах в предыдущем году.");
     }
   }
-
-
 
   private double getTotalExpensesForYear(int year) {
     double totalExpenses = 0.0;
@@ -244,14 +245,14 @@ public class ExpenseReportGenerator {
     }
   }
 
-  private int getUserChoice(Scanner scanner, int min, int max) {
+  private int getUserChoice(Scanner scanner, int max) {
     while (true) {
       try {
         int choice = scanner.nextInt();
-        if (choice >= min && choice <= max) {
+        if (choice >= 0 && choice <= max) {
           return choice;
         } else {
-          System.err.println("Пожалуйста, введите число в диапазоне от " + min + " до " + max + ".");
+          System.err.println("Пожалуйста, введите число в диапазоне от " + 0 + " до " + max + ".");
         }
       } catch (InputMismatchException e) {
         System.err.println("Пожалуйста, введите число.");
