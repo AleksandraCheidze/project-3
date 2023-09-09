@@ -112,7 +112,7 @@ public class ExpenseCategoryManager {
     removeCategory(categoryToRemove);
   }
 
-  private void updateCategories() {
+  public void updateCategories() {
     try (FileWriter categoriesWriter = new FileWriter(CATEGORIES_FILE_PATH)) {
       for (String category : categories) {
         categoriesWriter.write(category + "\n");
@@ -122,7 +122,7 @@ public class ExpenseCategoryManager {
     }
   }
 
-  private void loadCategoriesFromFile() {
+  public void loadCategoriesFromFile() {
     try (Scanner categoriesScanner = new Scanner(new File(CATEGORIES_FILE_PATH))) {
       while (categoriesScanner.hasNextLine()) {
         String category = categoriesScanner.nextLine().trim();
@@ -131,7 +131,6 @@ public class ExpenseCategoryManager {
         }
       }
     } catch (FileNotFoundException e) {
-    } catch (Exception e) {
       System.err.println("Ошибка при чтении категорий из файла: " + e.getMessage());
     }
   }
