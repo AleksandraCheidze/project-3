@@ -17,10 +17,10 @@ public class BudgetApp {
   private static final String SUBMENU_OPTION_COMPARE_EXPENSES_THIS_YEAR = "3";
   private static final String SUBMENU_OPTION_BACK_TO_MAIN_MENU = "4";
 
-  private final Scanner scanner;
-  private final List<Expense> expenses;
+  final List<Expense> expenses;
   private final ExpenseCategoryManager categoryManager;
   private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+  public Scanner scanner;
 
   public BudgetApp() {
     categoryManager = new ExpenseCategoryManager();
@@ -92,12 +92,26 @@ public class BudgetApp {
     }
   }
 
-  private String getUserChoice(Scanner scanner) {
+  /**
+   * Prompts the user for their choice and returns it as a string.
+   *
+   * @param scanner The Scanner object for user input.
+   * @return The user's choice as a string.
+   */
+
+   String getUserChoice(Scanner scanner) {
     System.out.print("Введите ваш выбор: ");
     return scanner.nextLine().trim();
   }
 
-  private String chooseExpenseCategory(Scanner scanner) {
+  /**
+   * Prompts the user to choose an expense category from a list.
+   *
+   * @param scanner The Scanner object for user input.
+   * @return The chosen expense category as a string, or null if an invalid choice is made.
+   */
+
+   String chooseExpenseCategory(Scanner scanner) {
     System.out.println("Выберите категорию расхода:");
     List<String> categories = categoryManager.getCategories();
     for (int i = 0; i < categories.size(); i++) {
@@ -113,12 +127,22 @@ public class BudgetApp {
     return categories.get(categoryChoice - 1);
   }
 
-  private double enterExpenseAmount() {
+  /**
+   * Prompts the user to enter the expense amount and returns it as a double.
+   *
+   * @return The entered expense amount as a double.
+   */
+   double enterExpenseAmount() {
     System.out.print("Введите сумму расхода: ");
     return getDoubleInput(scanner);
   }
 
-  private Date enterExpenseDate() {
+  /**
+   * Prompts the user to enter the expense date and returns it as a Date object.
+   *
+   * @return The entered expense date as a Date object.
+   */
+   Date enterExpenseDate() {
     boolean validDate = false;
     Date date = null;
 
@@ -157,10 +181,13 @@ public class BudgetApp {
         System.err.println("Неверная дата. Пожалуйста, введите корректную дату.");
       }
     }
-
     return date;
   }
 
+  /**
+   * Adds a new expense to the expenses list based on user input.
+   * Prompts the user to choose a category, enter an amount, and input the date.
+   */
   public void addExpense() {
     String category = chooseExpenseCategory(scanner);
     if (category == null) {
@@ -175,7 +202,14 @@ public class BudgetApp {
     System.out.println("Расход успешно добавлен.");
   }
 
-  private double getDoubleInput(Scanner scanner) {
+  /**
+   * Helper method to get a double input from the user via the scanner.
+   *
+   * @param scanner The Scanner object for user input.
+   * @return The entered double value.
+   */
+
+  double getDoubleInput(Scanner scanner) {
     while (true) {
       try {
         return Double.parseDouble(scanner.nextLine().trim());
@@ -185,7 +219,7 @@ public class BudgetApp {
     }
   }
 
-  private void exit() {
+   void exit() {
     System.out.println("Выход");
     scanner.close();
   }
