@@ -61,7 +61,6 @@ public class BudgetApp {
     System.out.println("║  3. Управление категориями                     ║");
     System.out.println("║  4. Выход                                      ║");
     System.out.println("╚════════════════════════════════════════════════╝");
-    System.out.print("Выберите действие: ");
   }
 
   private void showReportsMenu() {
