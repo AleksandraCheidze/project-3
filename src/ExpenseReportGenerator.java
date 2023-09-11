@@ -5,7 +5,6 @@ import java.util.*;
 public class ExpenseReportGenerator {
 
   private final List<Expense> expenses;
-  private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
   private final Scanner scanner;
 
   public ExpenseReportGenerator(List<Expense> expenses) {
@@ -169,7 +168,7 @@ public class ExpenseReportGenerator {
    * @param year The year for which expenses are calculated.
    * @return The total expenses for the specified year.
    */
-  private double getTotalExpensesForYear(int year) {
+  public double getTotalExpensesForYear(int year) {
     double totalExpenses = 0.0;
     for (Expense expense : expenses) {
       Date expenseDate = parseDate(expense.getDate());
@@ -211,7 +210,7 @@ public class ExpenseReportGenerator {
    *
    * @return List of distinct expense categories.
    */
-  private List<String> getDistinctCategories() {
+  public List<String> getDistinctCategories() {
     List<String> distinctCategories = new ArrayList<>();
     for (Expense expense : expenses) {
       String category = expense.getCategory();
@@ -228,8 +227,10 @@ public class ExpenseReportGenerator {
    * @param dateStr The date string to be parsed.
    * @return A Date object representing the parsed date, or null if parsing fails.
    */
-  private Date parseDate(String dateStr) {
+  public Date parseDate(String dateStr) {
     try {
+      SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+      dateFormat.setLenient(false); // Добавьте эту строку, чтобы парсер был строгим
       return dateFormat.parse(dateStr);
     } catch (ParseException e) {
       System.err.println("Ошибка при разборе даты: " + e.getMessage());
@@ -258,5 +259,10 @@ public class ExpenseReportGenerator {
         scanner.next();
       }
     }
+  }
+
+  public double getTotalExpensesInMonth() {
+
+    return 0;
   }
 }
