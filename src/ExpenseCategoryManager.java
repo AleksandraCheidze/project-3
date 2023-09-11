@@ -41,7 +41,7 @@ public class ExpenseCategoryManager {
    * @param category The name of the category to remove.
    */
   public void removeCategory(String category) {
-    if (category != null && !category.trim().isEmpty()) {
+    if (category != null && !category.isEmpty()) {
       if (categories.remove(category)) {
         updateCategories();
         System.out.println("Категория успешно удалена: " + category);
@@ -71,6 +71,7 @@ public class ExpenseCategoryManager {
       int choice;
       if (scanner.hasNextInt()) {
         choice = scanner.nextInt();
+        scanner.nextLine();
       } else {
         System.err.println("Пожалуйста, введите число.");
         scanner.next();
@@ -95,8 +96,8 @@ public class ExpenseCategoryManager {
    */
   private void addCategoryFromInput(Scanner scanner) {
     System.out.println("Введите название новой категории:");
-    scanner.nextLine(); // Очистка буфера
-    String newCategory = scanner.nextLine().trim();
+    scanner.nextLine();
+    String newCategory = scanner.nextLine();
     addCategory(newCategory);
   }
 
@@ -107,8 +108,8 @@ public class ExpenseCategoryManager {
    */
   private void removeCategoryFromInput(Scanner scanner) {
     System.out.println("Введите название категории для удаления:");
-    scanner.nextLine(); // Очистка буфера
-    String categoryToRemove = scanner.nextLine().trim();
+    scanner.nextLine();
+    String categoryToRemove = scanner.nextLine();
     removeCategory(categoryToRemove);
   }
 
@@ -125,7 +126,7 @@ public class ExpenseCategoryManager {
   public void loadCategoriesFromFile() {
     try (Scanner categoriesScanner = new Scanner(new File(CATEGORIES_FILE_PATH))) {
       while (categoriesScanner.hasNextLine()) {
-        String category = categoriesScanner.nextLine().trim();
+        String category = categoriesScanner.nextLine();
         if (!category.isEmpty()) {
           categories.add(category);
         }

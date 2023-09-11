@@ -99,9 +99,9 @@ public class BudgetApp {
    * @return The user's choice as a string.
    */
 
-   String getUserChoice(Scanner scanner) {
+  String getUserChoice(Scanner scanner) {
     System.out.print("Введите ваш выбор: ");
-    return scanner.nextLine().trim();
+    return scanner.nextLine();
   }
 
   /**
@@ -111,19 +111,18 @@ public class BudgetApp {
    * @return The chosen expense category as a string, or null if an invalid choice is made.
    */
 
-   String chooseExpenseCategory(Scanner scanner) {
+  String chooseExpenseCategory(Scanner scanner) {
     System.out.println("Выберите категорию расхода:");
     List<String> categories = categoryManager.getCategories();
     for (int i = 0; i < categories.size(); i++) {
       System.out.println((i + 1) + ". " + categories.get(i));
     }
 
-    int categoryChoice = Integer.parseInt(getUserChoice(this.scanner));
+    int categoryChoice = Integer.parseInt(getUserChoice(scanner)); // Use the passed scanner
     if (categoryChoice < 1 || categoryChoice > categories.size()) {
       System.err.println("Неверный выбор категории.");
       return null;
     }
-
     return categories.get(categoryChoice - 1);
   }
 
@@ -132,7 +131,7 @@ public class BudgetApp {
    *
    * @return The entered expense amount as a double.
    */
-   double enterExpenseAmount() {
+  double enterExpenseAmount() {
     System.out.print("Введите сумму расхода: ");
     return getDoubleInput(scanner);
   }
@@ -142,7 +141,8 @@ public class BudgetApp {
    *
    * @return The entered expense date as a Date object.
    */
-   Date enterExpenseDate() {
+
+  Date enterExpenseDate() {
     boolean validDate = false;
     Date date = null;
 
@@ -185,8 +185,8 @@ public class BudgetApp {
   }
 
   /**
-   * Adds a new expense to the expenses list based on user input.
-   * Prompts the user to choose a category, enter an amount, and input the date.
+   * Adds a new expense to the expenses list based on user input. Prompts the user to choose a
+   * category, enter an amount, and input the date.
    */
   public void addExpense() {
     String category = chooseExpenseCategory(scanner);
@@ -208,18 +208,17 @@ public class BudgetApp {
    * @param scanner The Scanner object for user input.
    * @return The entered double value.
    */
-
   double getDoubleInput(Scanner scanner) {
     while (true) {
       try {
-        return Double.parseDouble(scanner.nextLine().trim());
+        return Double.parseDouble(scanner.nextLine());
       } catch (NumberFormatException e) {
         System.err.println("Неверный ввод. Введите число.");
       }
     }
   }
 
-   void exit() {
+  void exit() {
     System.out.println("Выход");
     scanner.close();
   }

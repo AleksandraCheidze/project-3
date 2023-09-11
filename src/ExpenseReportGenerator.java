@@ -22,7 +22,7 @@ public class ExpenseReportGenerator {
     for (int i = 0; i < categories.size(); i++) {
       System.out.println((i + 1) + ". " + categories.get(i));
     }
-    int categoryChoice = getUserChoice(scanner, categories.size() - 1); // Allow 0 for all categories
+    int categoryChoice = getUserChoice(scanner, categories.size() - 1);
 
     System.out.println("Введите начальную дату (в формате dd.MM.yyyy):");
     String startDateInput = scanner.next();
@@ -230,7 +230,7 @@ public class ExpenseReportGenerator {
   public Date parseDate(String dateStr) {
     try {
       SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
-      dateFormat.setLenient(false); // Добавьте эту строку, чтобы парсер был строгим
+      dateFormat.setLenient(false);
       return dateFormat.parse(dateStr);
     } catch (ParseException e) {
       System.err.println("Ошибка при разборе даты: " + e.getMessage());
